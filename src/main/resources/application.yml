@@ -110,7 +110,7 @@ knife4j:
       default:
         api-rule: package
         api-rule-resources:
-          - com.yupi.springbootinit.controller
+          - com.xin.springbootinit.controller
 
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:

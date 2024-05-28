@@ -65,3 +65,40 @@ create table if not exists post_favour
     index idx_postId (postId),
     index idx_userId (userId)
 ) comment '帖子收藏';
+
+
+-- 评论表
+create table comment
+(
+    id          bigint                                     not null comment '主键id'
+        primary key,
+    Id  bigint           default 0                 not null comment '问题id',
+    userId      bigint           default 0                 not null comment '用户id',
+    userName    varchar(50)                                null comment '用户昵称',
+    userAvatar  varchar(255)                               null comment '用户头像',
+    content     varchar(500)                               null comment '评论内容',
+    parentId    bigint           default -1                null comment '父级评论id
+',
+    commentNum  int              default 0                 null comment '回复条数',
+    likeCount   int              default 0                 null comment '点赞数量',
+    isLike      tinyint(1)       default 0                 null comment '是否点赞',
+    likeListId  varchar(255)                               null comment '点赞id列表',
+    inputShow   tinyint(1)       default 0                 null comment '是否显示输入框',
+    fromId      bigint                                     null comment '回复记录id
+',
+    fromName    varchar(255) collate utf8mb4_bin           null comment '回复人名称
+',
+    gmtCreate   datetime         default CURRENT_TIMESTAMP not null comment '创建时间',
+    gmtModified datetime         default CURRENT_TIMESTAMP not null comment '更新时间',
+    isDeleted   tinyint unsigned default '0'               not null comment '逻辑删除 1（true）已删除， 0（false）未删除'
+)
+    comment '评论' collate = utf8mb4_general_ci
+                   row_format = DYNAMIC;
+
+create index idx_Id
+    on _comment (Id);
+
+create index idx_userId
+    on _comment (userId);
+
+
