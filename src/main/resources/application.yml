@@ -27,7 +27,7 @@ spring:
     # Redis 配置
     # todo 需替换配置，然后取消注释
   redis:
-    database: 0
+    database: 3
     host: 10.101.100.2
     port: 6379
     timeout: 5000
@@ -106,12 +106,18 @@ knife4j:
         api-rule-resources:
           - com.xin.xinChat.controller
 
+## 日志配置,存放在当前文件夹
 project:
   folder: ./xinChat_log
 
 log:
   root:
     level: info
+
+##超级管理员id
+admin:
+  email: shuaishuai_li@qq.com
+
 
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:

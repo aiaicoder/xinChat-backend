@@ -2,39 +2,36 @@ package com.xin.xinChat.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wf.captcha.ArithmeticCaptcha;
 import com.xin.xinChat.common.BaseResponse;
 import com.xin.xinChat.common.DeleteRequest;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.common.ResultUtils;
+import com.xin.xinChat.constant.RedisKeyConstant;
 import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.exception.ThrowUtils;
-import com.xin.xinChat.model.dto.user.UserAddRequest;
-import com.xin.xinChat.model.dto.user.UserLoginRequest;
-import com.xin.xinChat.model.dto.user.UserQueryRequest;
-import com.xin.xinChat.model.dto.user.UserRegisterRequest;
-import com.xin.xinChat.model.dto.user.UserUpdateMyRequest;
-import com.xin.xinChat.model.dto.user.UserUpdateRequest;
+import com.xin.xinChat.model.dto.user.*;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.vo.LoginUserVO;
 import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.UserService;
-
-import java.io.File;
-import java.util.List;
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.statement.select.KSQLWindow;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.DigestUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 用户接口
@@ -52,6 +49,25 @@ public class UserController {
 
     private final String SALT = "xin";
 
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
+
+    @GetMapping("/checkCode")
+    public BaseResponse<Map<String, String>> checkCode() {
+        ArithmeticCaptcha captcha = new ArithmeticCaptcha(100, 43);
+        String code = captcha.text();
+        log.info("验证码是：{}", code);
+        String checkCodeKey = UUID.fastUUID().toString();
+        String checkCodeBase64 = captcha.toBase64();
+        Map<String, String> result = new HashMap<>();
+        result.put("checkCode", checkCodeBase64);
+        result.put("checkCodeKey", checkCodeKey);
+        //设置验证码到redis，并且设置过期时间
+        stringRedisTemplate.opsForValue().set(RedisKeyConstant.REDIS_KEY_CHECK_CODE,code,RedisKeyConstant.CHECK_CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+        return ResultUtils.success(result);
+    }
+
 
     /**
      * 用户注册
@@ -60,19 +76,20 @@ public class UserController {
      * @return
      */
     @PostMapping("/register")
-    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public BaseResponse<String> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String userAccount = userRegisterRequest.getUserAccount();
+        String Email = userRegisterRequest.getEmail();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
+        if (StringUtils.isAnyBlank(Email, userPassword, checkPassword)) {
             return null;
         }
-        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        String result = userService.userRegister(Email, userPassword, checkPassword);
         return ResultUtils.success(result);
     }
+
 
     /**
      * 用户登录
@@ -85,29 +102,14 @@ public class UserController {
         if (userLoginRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String userAccount = userLoginRequest.getUserAccount();
+        String Email = userLoginRequest.getEmail();
         String userPassword = userLoginRequest.getUserPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword)) {
+        if (StringUtils.isAnyBlank(Email, userPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        LoginUserVO loginUserVO = userService.userLogin(userAccount, userPassword);
+        LoginUserVO loginUserVO = userService.userLogin(Email, userPassword);
 
         return ResultUtils.success(loginUserVO);
-    }
-
-    /**
-     * 用户注销
-     *
-     * @param request
-     * @return
-     */
-    @Deprecated
-    public BaseResponse<Boolean> userLogout(HttpServletRequest request) {
-        if (request == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        boolean result = userService.userLogout(request);
-        return ResultUtils.success(result);
     }
 
     /**
@@ -119,17 +121,6 @@ public class UserController {
     public BaseResponse<Boolean> userLogout() {
         boolean result = userService.userLogout();
         return ResultUtils.success(result);
-    }
-
-    /**
-     * 获取当前登录用户
-     *
-     * @param request
-     * @return
-     */
-    public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
-        User user = userService.getLoginUser(request);
-        return ResultUtils.success(userService.getLoginUserVO(user));
     }
 
 
@@ -157,7 +148,7 @@ public class UserController {
      */
     @PostMapping("/add")
     @SaCheckRole(UserConstant.ADMIN_ROLE)
-    public BaseResponse<Long> addUser(@RequestBody UserAddRequest userAddRequest) {
+    public BaseResponse<String> addUser(@RequestBody UserAddRequest userAddRequest) {
         if (userAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }

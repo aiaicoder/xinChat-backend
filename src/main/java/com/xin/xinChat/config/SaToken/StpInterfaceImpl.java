@@ -1,4 +1,4 @@
-package com.xin.xinChat.config;
+package com.xin.xinChat.config.SaToken;
 
 import java.util.ArrayList;
 import java.util.List;

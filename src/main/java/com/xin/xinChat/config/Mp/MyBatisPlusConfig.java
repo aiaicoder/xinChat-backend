@@ -1,4 +1,4 @@
-package com.xin.xinChat.config;
+package com.xin.xinChat.config.Mp;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
