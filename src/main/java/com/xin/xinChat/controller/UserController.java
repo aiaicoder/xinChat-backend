@@ -47,8 +47,6 @@ public class UserController {
     @Resource
     private UserService userService;
 
-    private final String SALT = "xin";
-
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
@@ -64,7 +62,7 @@ public class UserController {
         result.put("checkCode", checkCodeBase64);
         result.put("checkCodeKey", checkCodeKey);
         //设置验证码到redis，并且设置过期时间
-        stringRedisTemplate.opsForValue().set(RedisKeyConstant.REDIS_KEY_CHECK_CODE,code,RedisKeyConstant.CHECK_CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey,code,RedisKeyConstant.CHECK_CODE_EXPIRE_TIME, TimeUnit.MINUTES);
         return ResultUtils.success(result);
     }
 
@@ -80,13 +78,15 @@ public class UserController {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String Email = userRegisterRequest.getEmail();
+        String email = userRegisterRequest.getEmail();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        if (StringUtils.isAnyBlank(Email, userPassword, checkPassword)) {
-            return null;
+        String checkCode = userRegisterRequest.getCheckCode();
+        String checkCodeKey = userRegisterRequest.getCheckCodeKey();
+        if (StringUtils.isAnyBlank(email, userPassword, checkPassword,checkCode,checkCodeKey)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数缺失");
         }
-        String result = userService.userRegister(Email, userPassword, checkPassword);
+        String result = userService.userRegister(email, userPassword, checkPassword, checkCode, checkCodeKey);
         return ResultUtils.success(result);
     }
 
@@ -102,12 +102,12 @@ public class UserController {
         if (userLoginRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String Email = userLoginRequest.getEmail();
+        String email = userLoginRequest.getEmail();
         String userPassword = userLoginRequest.getUserPassword();
-        if (StringUtils.isAnyBlank(Email, userPassword)) {
+        if (StringUtils.isAnyBlank(email, userPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        LoginUserVO loginUserVO = userService.userLogin(Email, userPassword);
+        LoginUserVO loginUserVO = userService.userLogin(email, userPassword);
 
         return ResultUtils.success(loginUserVO);
     }
@@ -156,6 +156,7 @@ public class UserController {
         BeanUtils.copyProperties(userAddRequest, user);
         // 默认密码 12345678
         String defaultPassword = "12345678";
+        String SALT = "xin";
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + defaultPassword).getBytes());
         user.setUserPassword(encryptPassword);
         boolean result = userService.save(user);
@@ -167,18 +168,18 @@ public class UserController {
      * 删除用户
      *
      * @param deleteRequest
-     * @param request
      * @return
      */
     @PostMapping("/delete")
     @SaCheckRole(UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
-        if (deleteRequest == null || deleteRequest.getId() <= 0) {
+    public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
+        if (deleteRequest == null || deleteRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         boolean b = userService.removeById(deleteRequest.getId());
         return ResultUtils.success(b);
     }
+
 
     /**
      * 更新用户

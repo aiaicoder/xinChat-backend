@@ -1,4 +1,5 @@
 package com.xin.xinChat.service.impl;
+
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.collection.CollUtil;
@@ -6,11 +7,11 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.constant.CommonConstant;
+import com.xin.xinChat.constant.RedisKeyConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.mapper.UserMapper;
 import com.xin.xinChat.model.dto.user.UserQueryRequest;
 import com.xin.xinChat.model.entity.User;
-import com.xin.xinChat.model.enums.UserRoleEnum;
 import com.xin.xinChat.model.vo.LoginUserVO;
 import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.UserService;
@@ -18,9 +19,11 @@ import com.xin.xinChat.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
-import javax.servlet.http.HttpServletRequest;
+
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -44,14 +47,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     public static final String SALT = "xin";
 
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
     @Override
-    public String userRegister(String Email, String userPassword, String checkPassword) {
+    public String userRegister(String email, String userPassword, String checkPassword, String checkCode, String checkCodeKey) {
         // 1. 校验
-        if (StringUtils.isAnyBlank(Email, userPassword, checkPassword)) {
+        if (StringUtils.isAnyBlank(email, userPassword, checkPassword, checkCode, checkCodeKey)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
-        if (Email.length() < 4) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号过短");
+        if (!checkCode.equals(stringRedisTemplate.opsForValue().get(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
+            log.error("checkCodeKey:{}", checkCodeKey);
+            stringRedisTemplate.delete(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片验证码错误");
         }
         if (userPassword.length() < 8 || checkPassword.length() < 8 || checkPassword.length() > 32 || userPassword.length() > 32) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
@@ -61,18 +70,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
         }
         //检测账号是否包含特殊字符
-        String validPattern = "[\\u00A0\\s\"`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
-        Matcher matcher = Pattern.compile(validPattern).matcher(Email);
+        String validPattern = "^([a-z0-9A-Z]+[-|\\\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\\\.)+[a-zA-Z]{2,}$";
+        Matcher matcher = Pattern.compile(validPattern).matcher(email);
         if (matcher.find()) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号存在非法字符");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "非法邮箱");
         }
-        synchronized (Email.intern()) {
+        synchronized (email.intern()) {
             // 账户不能重复
             QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("Email", Email);
+            queryWrapper.eq("Email", email);
             long count = this.baseMapper.selectCount(queryWrapper);
             if (count > 0) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "邮箱重复");
             }
             // 2. 加密
             String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
@@ -138,32 +147,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
     /**
-     * 获取当前登录用户（允许未登录）
-     *
-     * @param request
-     * @return
-     */
-    @Override
-    public User getLoginUserPermitNull(HttpServletRequest request) {
-        // 先判断是否已登录
-        Object userObj = StpUtil.getSession().get(USER_LOGIN_STATE);
-        User currentUser = (User) userObj;
-        if (currentUser == null || currentUser.getId() == null) {
-            return null;
-        }
-        // 从数据库查询（追求性能的话可以注释，直接走缓存）
-        String userId = currentUser.getId();
-        return this.getById(userId);
-    }
-
-
-    @Override
-    public boolean isAdmin(User user) {
-        return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
-    }
-
-
-    /**
      * 用户登陆注销(通过框架)
      * @return
      */
@@ -175,6 +158,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         StpUtil.logout();
         return true;
     }
+
 
     @Override
     public LoginUserVO getLoginUserVO(User user) {
@@ -213,10 +197,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String userName = userQueryRequest.getUserName();
         String userProfile = userQueryRequest.getUserProfile();
         String userRole = userQueryRequest.getUserRole();
+        String email  = userQueryRequest.getEmail();
         String sortField = userQueryRequest.getSortField();
         String sortOrder = userQueryRequest.getSortOrder();
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(id != null, "id", id);
+        queryWrapper.eq(StringUtils.isNotBlank(email), "email", email);
         queryWrapper.eq(StringUtils.isNotBlank(userRole), "userRole", userRole);
         queryWrapper.like(StringUtils.isNotBlank(userProfile), "userProfile", userProfile);
         queryWrapper.like(StringUtils.isNotBlank(userName), "userName", userName);

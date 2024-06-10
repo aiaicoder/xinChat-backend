@@ -21,12 +21,12 @@ public interface UserService extends IService<User> {
     /**
      * 用户注册
      *
-     * @param Email   用户账户
+     * @param email   用户邮箱
      * @param userPassword  用户密码
      * @param checkPassword 校验密码
      * @return 新用户 id
      */
-    String userRegister(String Email, String userPassword, String checkPassword);
+    String userRegister(String email, String userPassword, String checkPassword,String checkCode,String checkCodeKey);
 
 
     /**
@@ -48,25 +48,6 @@ public interface UserService extends IService<User> {
     User getLoginUser();
 
 
-
-    /**
-     * 获取当前登录用户（允许未登录）
-     *
-     * @param request
-     * @return
-     */
-    User getLoginUserPermitNull(HttpServletRequest request);
-
-
-    /**
-     * 是否为管理员
-     *
-     * @param user
-     * @return
-     */
-    boolean isAdmin(User user);
-
-
     /**
      * 用户登录
      * @return
@@ -79,7 +60,6 @@ public interface UserService extends IService<User> {
      * @return
      */
     LoginUserVO getLoginUserVO(User user);
-
 
 
     /**
