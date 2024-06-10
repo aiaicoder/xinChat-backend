@@ -26,6 +26,11 @@ public interface UserConstant {
     String ADMIN_ROLE = "admin";
 
     /**
+     * id长度
+     */
+    int ID_LENGTH = 11;
+
+    /**
      * 被封号
      */
     String BAN_ROLE = "ban";

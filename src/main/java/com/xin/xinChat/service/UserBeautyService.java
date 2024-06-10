@@ -1,6 +1,8 @@
 package com.xin.xinChat.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.xin.xinChat.model.dto.user.UserQueryRequest;
 import com.xin.xinChat.model.entity.UserBeauty;
 
 

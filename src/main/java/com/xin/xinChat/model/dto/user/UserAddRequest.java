@@ -20,7 +20,7 @@ public class UserAddRequest implements Serializable {
     /**
      * 账号
      */
-    private String Email;
+    private String email;
 
     /**
      * 用户头像

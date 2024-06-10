@@ -8,11 +8,11 @@
             <id property="id" column="id" jdbcType="INTEGER"/>
             <result property="userid" column="userId" jdbcType="VARCHAR"/>
             <result property="status" column="status" jdbcType="TINYINT"/>
-            <result property="email" column="Email" jdbcType="VARCHAR"/>
+            <result property="email" column="email" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,userId,status,
-        Email
+        email
     </sql>
 </mapper>

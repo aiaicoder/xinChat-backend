@@ -1,9 +1,17 @@
 package com.xin.xinChat.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xin.xinChat.common.ErrorCode;
+import com.xin.xinChat.constant.CommonConstant;
+import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.mapper.UserBeautyMapper;
+import com.xin.xinChat.model.dto.user.UserQueryRequest;
+import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.entity.UserBeauty;
 import com.xin.xinChat.service.UserBeautyService;
+import com.xin.xinChat.utils.SqlUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,6 +22,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserBeautyServiceImpl extends ServiceImpl<UserBeautyMapper, UserBeauty>
     implements UserBeautyService {
+
+
 
 }
 

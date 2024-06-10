@@ -12,7 +12,7 @@ use xin_Chat;
 create table if not exists user
 (
     id           varchar(12)                           not null comment 'id' primary key,
-    Email        varchar(50)                            not null comment '邮箱',
+    email        varchar(50)                            not null comment '邮箱',
     userPassword varchar(32)                           not null comment '密码',
     userName     varchar(50)                           null comment '用户昵称',
     joinType     tinyint(1)                             null comment '0:直接加入，1：同意后添加好友',
@@ -27,7 +27,7 @@ create table if not exists user
     updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     lastOffTime  bigint(13)                             null comment '最后下线时间',
     isDelete     tinyint      default 0                 not null comment '是否删除',
-    index idx_Email (Email)
+    index idx_Email (email)
 ) comment '用户信息表' collate = utf8mb4_unicode_ci;
 
 
@@ -51,15 +51,15 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 -- Table structure for UserBeauty
 -- ----------------------------
-DROP TABLE IF EXISTS `userBeauty`;
+DROP TABLE IF EXISTS UserBeauty;
 CREATE TABLE `userBeauty`  (
                                `id` int NOT NULL AUTO_INCREMENT,
                                `userId` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户id',
                                `status` tinyint(1) NULL DEFAULT NULL COMMENT '0：未使用 1：已使用',
-                               `Email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户邮箱',
+                               `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户邮箱',
                                PRIMARY KEY (`id`) USING BTREE,
                                UNIQUE INDEX `idx_key_userId`(`userId` ASC) USING BTREE,
-                               UNIQUE INDEX `idx_key_Email`(`Email` ASC) USING BTREE
+                               UNIQUE INDEX `idx_key_email`(`email` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '靓号表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------

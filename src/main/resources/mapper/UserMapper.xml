@@ -6,11 +6,11 @@
 
     <resultMap id="BaseResultMap" type="com.xin.xinChat.model.entity.User">
             <id property="id" column="id" jdbcType="VARCHAR"/>
-            <result property="email" column="Email" jdbcType="VARCHAR"/>
+            <result property="email" column="email" jdbcType="VARCHAR"/>
             <result property="userPassword" column="userPassword" jdbcType="VARCHAR"/>
             <result property="userName" column="userName" jdbcType="VARCHAR"/>
             <result property="joinType" column="joinType" jdbcType="TINYINT"/>
-            <result property="sex" column="Sex" jdbcType="TINYINT"/>
+            <result property="sex" column="sex" jdbcType="TINYINT"/>
             <result property="userAvatar" column="userAvatar" jdbcType="VARCHAR"/>
             <result property="userProfile" column="userProfile" jdbcType="VARCHAR"/>
             <result property="userRole" column="userRole" jdbcType="VARCHAR"/>
@@ -24,8 +24,8 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,Email,userPassword,
-        userName,joinType,Sex,
+        id,email,userPassword,
+        userName,joinType,sex,
         userAvatar,userProfile,userRole,
         createTime,lastLoginTime,areaName,
         areaCode,updateTime,lastOffTime,

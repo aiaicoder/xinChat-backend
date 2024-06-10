@@ -2,6 +2,7 @@ package com.xin.xinChat.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -12,7 +13,6 @@ import java.util.Date;
 
 /**
  * 用户信息表
- * @author 15712
  * @TableName user
  */
 @TableName(value ="user")
@@ -66,7 +66,6 @@ public class User implements Serializable {
 
     /**
      * 创建时间
-     * 直接格式化时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -92,6 +91,8 @@ public class User implements Serializable {
     /**
      * 更新时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
     /**
@@ -100,12 +101,16 @@ public class User implements Serializable {
     private Long lastOffTime;
 
     /**
-     * 是否删除
+     * token
      */
-    private Integer isDelete;
-
     @TableField(exist = false)//只为了前端和后端的验证，该字段不加在数据库表里面
     private String token;
+
+    /**
+     * 是否删除
+     */
+    @TableLogic
+    private Integer isDelete;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
