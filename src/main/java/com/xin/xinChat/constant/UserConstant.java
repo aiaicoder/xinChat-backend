@@ -1,5 +1,7 @@
 package com.xin.xinChat.constant;
 
+import com.xin.xinChat.model.enums.UserContactEnum;
+
 /**
  * 用户常量
  *
@@ -44,4 +46,10 @@ public interface UserConstant {
      * 默认随机生成用户名
      */
     String DEFAULT_USERNAME = "用户-"+String.valueOf(System.currentTimeMillis()).substring(0,5);
+
+
+    /**
+     * 默认机器人名称
+     */
+    String ROBOT_UID = UserContactEnum.USER.getPrefix() + "robot";
 }

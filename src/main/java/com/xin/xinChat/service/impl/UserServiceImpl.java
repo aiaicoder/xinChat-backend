@@ -16,6 +16,7 @@ import com.xin.xinChat.model.dto.user.UserQueryRequest;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.entity.UserBeauty;
 import com.xin.xinChat.model.enums.BeautyAccountStatusEnum;
+import com.xin.xinChat.model.enums.JoinTypeEnum;
 import com.xin.xinChat.model.enums.UserContactEnum;
 import com.xin.xinChat.model.enums.UserRoleEnum;
 import com.xin.xinChat.model.vo.LoginUserVO;
@@ -28,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
@@ -67,6 +69,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private AppConfig appConfig;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String userRegister(String email, String userPassword, String checkPassword, String checkCode, String checkCodeKey) {
         // 1. 校验
         if (StringUtils.isAnyBlank(email, userPassword, checkPassword, checkCode, checkCodeKey)) {
@@ -122,6 +125,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             user.setUserName(DEFAULT_USERNAME);
             user.setEmail(email);
             user.setLastOffTime(curTime.getTime());
+            user.setJoinType(JoinTypeEnum.APPLY.getType());
             boolean saveResult = this.save(user);
             if (!saveResult) {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
@@ -168,7 +172,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         } else if (user.getUserRole().equals(UserRoleEnum.BAN.getValue())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户已被封禁");
         }
-
         StpUtil.login(user.getId());
         // 3. 记录用户的登录态
         StpUtil.getSession().set(USER_LOGIN_STATE, user);

@@ -3,6 +3,7 @@ package com.xin.xinChat.controller;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.UUID;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wf.captcha.ArithmeticCaptcha;
 import com.xin.xinChat.common.BaseResponse;
@@ -13,13 +14,13 @@ import com.xin.xinChat.constant.RedisKeyConstant;
 import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.exception.ThrowUtils;
+import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.dto.user.*;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.vo.LoginUserVO;
 import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.statement.select.KSQLWindow;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -109,9 +110,21 @@ public class UserController {
         if (StringUtils.isAnyBlank(email, userPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        LoginUserVO loginUserVO = userService.userLogin(email, userPassword, checkCode,checkCodeKey);
-
+        LoginUserVO loginUserVO = userService.userLogin(email, userPassword, checkCode, checkCodeKey);
         return ResultUtils.success(loginUserVO);
+    }
+
+
+    @GetMapping("/getSysSetting")
+    public BaseResponse<SysSettingDTO> getSysSetting() {
+        SysSettingDTO sysSettingDTO;
+        String sysSettingStr = stringRedisTemplate.opsForValue().get(RedisKeyConstant.REDIS_KEY_SYS_SETTING);
+        if (StringUtils.isBlank(sysSettingStr)) {
+            sysSettingDTO = new SysSettingDTO();
+        } else {
+            sysSettingDTO = JSONUtil.toBean(sysSettingStr, SysSettingDTO.class);
+        }
+        return ResultUtils.success(sysSettingDTO);
     }
 
     /**

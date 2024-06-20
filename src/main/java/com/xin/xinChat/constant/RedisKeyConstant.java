@@ -12,4 +12,9 @@ public interface RedisKeyConstant {
      * 两分钟过期
      */
     Long CHECK_CODE_EXPIRE_TIME = 3L;
+
+    String REDIS_KEY_SYS_SETTING = "xinChat:syssetting:";
+
+
+
 }

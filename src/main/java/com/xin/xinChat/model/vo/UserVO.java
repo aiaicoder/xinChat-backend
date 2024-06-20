@@ -24,6 +24,16 @@ public class UserVO implements Serializable {
     private String userName;
 
     /**
+     * 1：男,0:女
+     */
+    private Integer sex;
+
+    /**
+     * 0:直接加入，1：同意后添加好友
+     */
+    private Integer joinType;
+
+    /**
      * 用户头像
      */
     private String userAvatar;
@@ -34,14 +44,32 @@ public class UserVO implements Serializable {
     private String userProfile;
 
     /**
+     * 邮箱
+     */
+    private String email;
+
+    /**
      * 用户角色：user/admin/ban
      */
     private String userRole;
 
     /**
-     * 创建时间
+     * 地区
      */
-    private Date createTime;
+    private String areaName;
+
+    /**
+     * 地区编码
+     */
+    private String areaCode;
+
+    /**
+     * 用户返回的token
+     */
+    private String token;
+
+
+    private Integer contactStatus;
 
 
     private static final long serialVersionUID = 1L;

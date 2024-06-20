@@ -1,9 +1,8 @@
 package com.xin.xinChat.model.vo;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 已登录用户视图（脱敏）
@@ -15,7 +14,7 @@ import lombok.Data;
 public class LoginUserVO implements Serializable {
 
     /**
-     * 用户 id
+     * id
      */
     private Long id;
 
@@ -23,6 +22,16 @@ public class LoginUserVO implements Serializable {
      * 用户昵称
      */
     private String userName;
+
+    /**
+     * 1：男,0:女
+     */
+    private Integer sex;
+
+    /**
+     * 0:直接加入，1：同意后添加好友
+     */
+    private Integer joinType;
 
     /**
      * 用户头像
@@ -35,24 +44,33 @@ public class LoginUserVO implements Serializable {
     private String userProfile;
 
     /**
+     * 邮箱
+     */
+    private String email;
+
+    /**
      * 用户角色：user/admin/ban
      */
     private String userRole;
 
     /**
-     * 创建时间
+     * 地区
      */
-    private Date createTime;
+    private String areaName;
 
     /**
-     * 更新时间
+     * 地区编码
      */
-    private Date updateTime;
+    private String areaCode;
 
     /**
      * 用户返回的token
      */
     private String token;
+
+
+    private Integer contactStatus;
+
 
     private static final long serialVersionUID = 1L;
 }

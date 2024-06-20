@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xin.xinChat.mapper.GroupinfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.xin.xinChat.model.entity.Groupinfo">
+            <id property="groupId" column="groupId" jdbcType="VARCHAR"/>
+            <result property="groupName" column="groupName" jdbcType="VARCHAR"/>
+            <result property="groupOwnerId" column="groupOwnerId" jdbcType="VARCHAR"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="groupNotice" column="groupNotice" jdbcType="VARCHAR"/>
+            <result property="joinType" column="joinType" jdbcType="TINYINT"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        groupId,groupName,groupOwnerId,
+        createTime,groupNotice,joinType,
+        status,isDelete
+    </sql>
+</mapper>

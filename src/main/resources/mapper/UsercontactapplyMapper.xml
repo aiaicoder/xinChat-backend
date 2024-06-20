@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xin.xinChat.mapper.UsercontactapplyMapper">
+
+    <resultMap id="BaseResultMap" type="com.xin.xinChat.model.entity.Usercontactapply">
+            <id property="applyId" column="applyId" jdbcType="INTEGER"/>
+            <result property="applyUserId" column="applyUserId" jdbcType="VARCHAR"/>
+            <result property="receiveUserId" column="receiveUserId" jdbcType="VARCHAR"/>
+            <result property="contactType" column="contactType" jdbcType="TINYINT"/>
+            <result property="contactId" column="contactId" jdbcType="VARCHAR"/>
+            <result property="lastApplyTime" column="lastApplyTime" jdbcType="BIGINT"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="applyInfo" column="applyInfo" jdbcType="VARCHAR"/>
+            <result property="isDelet" column="isDelet" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        applyId,applyUserId,receiveUserId,
+        contactType,contactId,lastApplyTime,
+        status,applyInfo,isDelet
+    </sql>
+</mapper>
