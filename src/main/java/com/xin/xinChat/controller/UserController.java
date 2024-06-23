@@ -1,5 +1,6 @@
 package com.xin.xinChat.controller;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.UUID;
@@ -116,6 +117,7 @@ public class UserController {
 
 
     @GetMapping("/getSysSetting")
+    @SaCheckLogin
     public BaseResponse<SysSettingDTO> getSysSetting() {
         SysSettingDTO sysSettingDTO;
         String sysSettingStr = stringRedisTemplate.opsForValue().get(RedisKeyConstant.REDIS_KEY_SYS_SETTING);
@@ -200,13 +202,11 @@ public class UserController {
      * 更新用户
      *
      * @param userUpdateRequest
-     * @param request
      * @return
      */
     @PostMapping("/update")
     @SaCheckRole(UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest,
-                                            HttpServletRequest request) {
+    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest) {
         if (userUpdateRequest == null || userUpdateRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -225,6 +225,7 @@ public class UserController {
      * @return
      */
     @GetMapping("/get")
+    @SaCheckLogin
     @SaCheckRole(UserConstant.ADMIN_ROLE)
     public BaseResponse<User> getUserById(long id, HttpServletRequest request) {
         if (id <= 0) {

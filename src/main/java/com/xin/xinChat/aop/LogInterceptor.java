@@ -22,6 +22,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Aspect
 @Component
 @Slf4j
+@Deprecated
 public class LogInterceptor {
 
     /**
@@ -32,7 +33,7 @@ public class LogInterceptor {
         // 计时
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        // 获取请求路径
+        // 获取请求路径,获取全局相应
         RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
         HttpServletRequest httpServletRequest = ((ServletRequestAttributes) requestAttributes).getRequest();
         // 生成请求唯一 id

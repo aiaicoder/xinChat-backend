@@ -15,7 +15,17 @@ public enum ErrorCode {
     NOT_FOUND_ERROR(40400, "请求数据不存在"),
     FORBIDDEN_ERROR(40300, "禁止访问"),
     SYSTEM_ERROR(50000, "系统内部异常"),
-    OPERATION_ERROR(50001, "操作失败");
+    OPERATION_ERROR(50001, "操作失败"),
+
+    INVALID_TOKEN_ERROR(401002,"登录失效"),
+
+    TOO_MANY_REQUEST(50011,"请求超过限制"),
+
+    BE_REPLACED_MESSAGE(401003,"账号异地登录"),
+
+    TOKEN_TIMEOUT_MESSAGE(401004,"登录过期"),
+    KICK_OUT_ERROR(401005,"你已被踢下线"),
+    TOKEN_FREEZE_ERROR(401006,"账号已被冻结");
 
     /**
      * 状态码
