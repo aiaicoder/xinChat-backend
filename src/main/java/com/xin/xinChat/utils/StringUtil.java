@@ -1,6 +1,7 @@
 package com.xin.xinChat.utils;
 
 import com.xin.xinChat.constant.UserConstant;
+import com.xin.xinChat.model.enums.UserContactEnum;
 import org.apache.commons.lang3.RandomStringUtils;
 
 /**
@@ -11,6 +12,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 public class StringUtil {
 
     public static String getUserId() {
-        return "U" + RandomStringUtils.random(UserConstant.ID_LENGTH, false, true);
+        return UserContactEnum.USER.getPrefix() + RandomStringUtils.random(UserConstant.ID_LENGTH, false, true);
+    }
+
+    public static String getGroupId() {
+        return UserContactEnum.GROUP.getPrefix() + RandomStringUtils.random(UserConstant.ID_LENGTH, false, true);
     }
 }

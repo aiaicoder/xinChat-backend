@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xin.xinChat.mapper.GroupinfoMapper">
+<mapper namespace="com.xin.xinChat.mapper.GroupInfoMapper">
 
-    <resultMap id="BaseResultMap" type="com.xin.xinChat.model.entity.Groupinfo">
+    <resultMap id="BaseResultMap" type="com.xin.xinChat.model.entity.GroupInfo">
             <id property="groupId" column="groupId" jdbcType="VARCHAR"/>
             <result property="groupName" column="groupName" jdbcType="VARCHAR"/>
             <result property="groupOwnerId" column="groupOwnerId" jdbcType="VARCHAR"/>
@@ -16,8 +16,10 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        groupId,groupName,groupOwnerId,
+        groupId
+        ,groupName,groupOwnerId,
         createTime,groupNotice,joinType,
+            groupAvatar,
         status,isDelete
     </sql>
 </mapper>

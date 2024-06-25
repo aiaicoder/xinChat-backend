@@ -33,4 +33,9 @@ public class SaveGroupRequest implements Serializable {
      * 加入群状态
      */
     private Integer joinType;
+
+    /**
+     * 群组头像
+     */
+    private String groupAvatar;
 }

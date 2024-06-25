@@ -4,15 +4,18 @@ import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serializable;
 import java.util.Date;
+
+import lombok.Builder;
 import lombok.Data;
 
 /**
  * 
+ * @author 15712
  * @TableName groupInfo
  */
 @TableName(value ="groupInfo")
 @Data
-public class Groupinfo implements Serializable {
+public class GroupInfo implements Serializable {
     /**
      * 群聊id
      */
@@ -50,6 +53,11 @@ public class Groupinfo implements Serializable {
 
      */
     private Integer status;
+
+    /**
+     * 用户头像
+     */
+    private String groupAvatar;
 
     /**
      * 逻辑删除

@@ -8,11 +8,12 @@ import lombok.Data;
 
 /**
  * 联系人表
+ * @author 15712
  * @TableName userContact
  */
 @TableName(value ="userContact")
 @Data
-public class Usercontact implements Serializable {
+public class UserContact implements Serializable {
     /**
      * 用户id
      */

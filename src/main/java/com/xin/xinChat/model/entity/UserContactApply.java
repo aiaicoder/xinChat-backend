@@ -9,11 +9,12 @@ import lombok.Data;
 
 /**
  * 联系人申请
+ * @author 15712
  * @TableName userContactApply
  */
 @TableName(value ="userContactApply")
 @Data
-public class Usercontactapply implements Serializable {
+public class UserContactApply implements Serializable {
     /**
      * 自增ID
      */

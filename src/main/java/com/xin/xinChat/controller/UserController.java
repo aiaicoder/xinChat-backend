@@ -21,6 +21,8 @@ import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.vo.LoginUserVO;
 import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.UserService;
+import com.xin.xinChat.utils.RedisUtils;
+import com.xin.xinChat.utils.SysSettingUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -50,7 +52,10 @@ public class UserController {
     private UserService userService;
 
     @Resource
-    private StringRedisTemplate stringRedisTemplate;
+    private RedisUtils redisUtils;
+
+    @Resource
+    private SysSettingUtil sysSettingUtil;
 
 
     @GetMapping("/checkCode")
@@ -64,7 +69,7 @@ public class UserController {
         result.put("checkCode", checkCodeBase64);
         result.put("checkCodeKey", checkCodeKey);
         //设置验证码到redis，并且设置过期时间
-        stringRedisTemplate.opsForValue().set(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey,code,RedisKeyConstant.CHECK_CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+        redisUtils.set(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey,code,RedisKeyConstant.CHECK_CODE_EXPIRE_TIME, TimeUnit.MINUTES);
         return ResultUtils.success(result);
     }
 
@@ -117,15 +122,9 @@ public class UserController {
 
 
     @GetMapping("/getSysSetting")
-    @SaCheckLogin
+
     public BaseResponse<SysSettingDTO> getSysSetting() {
-        SysSettingDTO sysSettingDTO;
-        String sysSettingStr = stringRedisTemplate.opsForValue().get(RedisKeyConstant.REDIS_KEY_SYS_SETTING);
-        if (StringUtils.isBlank(sysSettingStr)) {
-            sysSettingDTO = new SysSettingDTO();
-        } else {
-            sysSettingDTO = JSONUtil.toBean(sysSettingStr, SysSettingDTO.class);
-        }
+        SysSettingDTO sysSettingDTO = sysSettingUtil.getSysSetting();
         return ResultUtils.success(sysSettingDTO);
     }
 

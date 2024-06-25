@@ -1,8 +1,8 @@
 package com.xin.xinChat.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.xin.xinChat.model.entity.Usercontact;
-import generator.service.UsercontactService;
+import com.xin.xinChat.model.entity.UserContact;
+import com.xin.xinChat.service.UserContactService;
 import com.xin.xinChat.mapper.UsercontactMapper;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 * @createDate 2024-06-20 20:46:55
 */
 @Service
-public class UsercontactServiceImpl extends ServiceImpl<UsercontactMapper, Usercontact>
-    implements UsercontactService{
+public class UserContactServiceImpl extends ServiceImpl<UsercontactMapper, UserContact>
+    implements UserContactService {
 
 }
 
