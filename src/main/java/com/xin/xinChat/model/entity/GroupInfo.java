@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 
@@ -60,9 +61,16 @@ public class GroupInfo implements Serializable {
     private String groupAvatar;
 
     /**
+     * 群员数量
+     */
+    @TableField(exist = false)
+    private long memberCount;
+
+    /**
      * 逻辑删除
      */
     @TableLogic
+    @JsonIgnore
     private Integer isDelete;
 
     @TableField(exist = false)

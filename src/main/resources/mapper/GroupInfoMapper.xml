@@ -12,6 +12,7 @@
             <result property="groupNotice" column="groupNotice" jdbcType="VARCHAR"/>
             <result property="joinType" column="joinType" jdbcType="TINYINT"/>
             <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="memberCount" column="memberCount" jdbcType="INTEGER"/>
             <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
