@@ -2,6 +2,7 @@ package com.xin.xinChat.service;
 
 import com.xin.xinChat.model.entity.UserContact;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.xin.xinChat.model.vo.UserSearchVo;
 
 /**
 * @author 15712
@@ -9,5 +10,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2024-06-20 20:46:55
 */
 public interface UserContactService extends IService<UserContact> {
+
+    public UserSearchVo search(String userId, String contactId);
 
 }

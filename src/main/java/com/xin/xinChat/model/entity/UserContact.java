@@ -52,5 +52,14 @@ public class UserContact implements Serializable {
     private Integer isDelete;
 
     @TableField(exist = false)
+    private String contactName;
+
+    @TableField(exist = false)
+    private Integer sex;
+
+
+
+    @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
 }

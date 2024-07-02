@@ -16,7 +16,7 @@ public class UserVO implements Serializable {
     /**
      * id
      */
-    private Long id;
+    private String id;
 
     /**
      * 用户昵称
@@ -62,6 +62,7 @@ public class UserVO implements Serializable {
      * 地区编码
      */
     private String areaCode;
+
 
     /**
      * 用户返回的token

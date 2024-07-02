@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.mapper.GroupInfoMapper;
+import com.xin.xinChat.mapper.UsercontactMapper;
 import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.entity.GroupInfo;
 import com.xin.xinChat.model.entity.UserContact;
@@ -17,6 +18,7 @@ import com.xin.xinChat.service.UserContactService;
 import com.xin.xinChat.utils.StringUtil;
 import com.xin.xinChat.utils.SysSettingUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

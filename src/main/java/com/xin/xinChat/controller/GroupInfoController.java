@@ -12,7 +12,9 @@ import com.xin.xinChat.model.entity.GroupInfo;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.entity.UserContact;
 import com.xin.xinChat.model.enums.GroupInfoEnum;
+import com.xin.xinChat.model.enums.UserContactEnum;
 import com.xin.xinChat.model.enums.UserContactStatusEnum;
+import com.xin.xinChat.model.vo.GroupInfoVo;
 import com.xin.xinChat.service.GroupInfoService;
 import com.xin.xinChat.service.UserContactService;
 import com.xin.xinChat.service.UserService;
@@ -92,6 +94,40 @@ public class GroupInfoController {
         long count = userContactService.count(groupInfoQueryWrapper);
         groupInfo.setMemberCount(count);
         return ResultUtils.success(groupInfo);
+    }
+
+    /**
+     * 获取聊天会话群聊详情，查群组中的成员
+     * @param groupInfoQueryRequest
+     * @return
+     */
+    @PostMapping("/getGroupInfoChat")
+    @SaCheckLogin
+    public BaseResponse<GroupInfoVo> getGroupInfoChat(@RequestBody GroupInfoQueryRequest groupInfoQueryRequest) {
+        if (groupInfoQueryRequest == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "参数为空");
+        }
+        String groupId = groupInfoQueryRequest.getGroupId();
+        User loginUser = userService.getLoginUser();
+        GroupInfo detailGroupInfo = getDetailGroupInfo(loginUser, groupId);
+        QueryWrapper<UserContact> groupInfoQueryWrapper = new QueryWrapper<>();
+        //查询相关群聊
+        groupInfoQueryWrapper.eq("contactId", groupId);
+        groupInfoQueryWrapper.eq("status", UserContactStatusEnum.FRIEND.getStatus());
+        groupInfoQueryWrapper.orderByAsc("createTime");
+        List<UserContact> userContacts = userContactService.list(groupInfoQueryWrapper);
+        //这里进行联表查询，查询到对应的群成员
+        userContacts.forEach(userContact -> {
+            User user = userService.getById(userContact.getUserId());
+            userContact.setContactName(user.getUserName());
+            userContact.setSex(user.getSex());
+        });
+        GroupInfoVo groupInfoVo = new GroupInfoVo();
+        //组装，返回前端
+        groupInfoVo.setGroupInfo(detailGroupInfo);
+        groupInfoVo.setUserContactList(userContacts);
+
+        return ResultUtils.success(groupInfoVo);
     }
 
     @NotNull
