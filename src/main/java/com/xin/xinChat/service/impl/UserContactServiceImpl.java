@@ -73,7 +73,7 @@ public class UserContactServiceImpl extends ServiceImpl<UsercontactMapper, UserC
         QueryWrapper<UserContact> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userId", userId);
         queryWrapper.eq("contactId", contactId);
-        UserContact userContact = getById(queryWrapper);
+        UserContact userContact = getOne(queryWrapper);
         userSearchVo.setStatus(userContact == null ? null : userContact.getStatus());
         return userSearchVo;
     }
