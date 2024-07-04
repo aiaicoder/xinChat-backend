@@ -13,12 +13,12 @@
             <result property="lastApplyTime" column="lastApplyTime" jdbcType="BIGINT"/>
             <result property="status" column="status" jdbcType="TINYINT"/>
             <result property="applyInfo" column="applyInfo" jdbcType="VARCHAR"/>
-            <result property="isDelet" column="isDelet" jdbcType="TINYINT"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         applyId,applyUserId,receiveUserId,
         contactType,contactId,lastApplyTime,
-        status,applyInfo,isDelet
+        status,applyInfo,isDelete
     </sql>
 </mapper>

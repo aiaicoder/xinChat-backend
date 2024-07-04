@@ -1,6 +1,5 @@
 # 公共配置文件
 # @author <a href="https://github.com/liyupi">小新</a>
-# @from <a href="https://yupi.icu">编程导航知识星球</a>
 spring:
   application:
     name: springboot-init
@@ -11,12 +10,6 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
-  # session 配置
-  session:
-    # todo 取消注释开启分布式 session（须先配置 Redis）
-#    store-type: redis
-    # 30 天过期
-    timeout: 2592000
   # 数据库配置
   # todo 需替换配置
   datasource:
@@ -65,27 +58,6 @@ mybatis-plus:
       logic-delete-field: isDelete # 全局逻辑删除的实体字段名
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
-# 微信相关
-wx:
-  # 微信公众平台
-  # todo 需替换配置
-  mp:
-    token: xxx
-    aesKey: xxx
-    appId: xxx
-    secret: xxx
-    config-storage:
-      http-client-type: HttpClient
-      key-prefix: wx
-      redis:
-        host: 127.0.0.1
-        port: 6379
-      type: Memory
-  # 微信开放平台
-  # todo 需替换配置
-  open:
-    appId: xxx
-    appSecret: xxx
 # 对象存储
 # todo 需替换配置
 cos:
@@ -126,7 +98,7 @@ sa-token:
   # token 名称（同时也是 cookie 名称）
   token-name: xinChat-token
   # token 有效期（单位：秒） 默认30天，-1 代表永久有效
-  timeout: 86400
+  timeout: 172800
   # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结
   active-timeout: -1
   # 是否允许同一账号多地同时登录 （为 true 时允许一起登录, 为 false 时新登录挤掉旧登录）

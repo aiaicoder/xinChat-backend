@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 /**
@@ -57,9 +59,17 @@ public class UserContactApply implements Serializable {
     private String applyInfo;
 
     /**
+     * 申请人姓名
+     */
+    @TableField(exist = false)
+    private String contactName;
+
+
+    /**
      * 逻辑删除
      */
-    private Integer isDelet;
+    @JsonIgnore
+    private Integer isDelete;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

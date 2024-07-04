@@ -52,4 +52,9 @@ public interface UserConstant {
      * 默认机器人名称
      */
     String ROBOT_UID = UserContactEnum.USER.getPrefix() + "robot";
+
+    /**
+     * 默认申请信息
+     */
+    String DEFAULT_APPLY_INFO = "我是%s";
 }
