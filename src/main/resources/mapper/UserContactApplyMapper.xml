@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xin.xinChat.mapper.UsercontactapplyMapper">
+<mapper namespace="com.xin.xinChat.mapper.UserContactApplyMapper">
 
     <resultMap id="BaseResultMap" type="com.xin.xinChat.model.entity.UserContactApply">
             <id property="applyId" column="applyId" jdbcType="INTEGER"/>
@@ -21,4 +21,16 @@
         contactType,contactId,lastApplyTime,
         status,applyInfo,isDelete
     </sql>
+
+    <select id="selectUserContactApplyWithPage" resultType="com.xin.xinChat.model.entity.UserContactApply">
+        SELECT a.*,
+               CASE
+                   WHEN a.contactType = 0 THEN u.userName
+                   WHEN a.contactType = 1 THEN g.groupName
+                   END AS contactName
+        FROM userContactApply a
+                 LEFT JOIN user u ON u.id = a.applyUserId AND a.receiveUserId = #{receiveUserId}
+                 LEFT JOIN groupInfo g ON a.contactId = g.groupId AND a.contactType = 1 AND a.receiveUserId = #{receiveUserId}
+        ORDER BY a.lastApplyTime DESC
+    </select>
 </mapper>

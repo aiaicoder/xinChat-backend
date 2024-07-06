@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @createDate 2024-06-20 20:46:55
 * @Entity com.xin.xinChat.model.entity.UserContact
 */
-public interface UsercontactMapper extends BaseMapper<UserContact> {
+public interface UserContactMapper extends BaseMapper<UserContact> {
 
 }
 

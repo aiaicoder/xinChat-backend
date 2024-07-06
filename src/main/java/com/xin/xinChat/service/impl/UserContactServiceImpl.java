@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.exception.BusinessException;
-import com.xin.xinChat.mapper.UsercontactMapper;
+import com.xin.xinChat.mapper.UserContactMapper;
 import com.xin.xinChat.model.entity.GroupInfo;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.entity.UserContact;
@@ -29,7 +29,7 @@ import javax.annotation.Resource;
  * @createDate 2024-06-20 20:46:55
  */
 @Service
-public class UserContactServiceImpl extends ServiceImpl<UsercontactMapper, UserContact>
+public class UserContactServiceImpl extends ServiceImpl<UserContactMapper, UserContact>
         implements UserContactService {
     @Resource
     private UserService userService;
