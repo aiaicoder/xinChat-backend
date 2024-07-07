@@ -9,7 +9,7 @@ public enum UserContactApplyStatusEnum {
     INIT(0, "待处理"),
     AGREE(1, "已同意"),
     REFUSE(2, "已拒绝"),
-    BLACKLIST(3, "已拉黑   ");
+    BLACKLIST(3, "已拉黑");
 
     private final Integer status;
     private final String desc;

@@ -61,6 +61,7 @@ public class UserContactApply implements Serializable {
     /**
      * 申请人姓名
      */
+    @TableField(exist = false)
     private String contactName;
 
 

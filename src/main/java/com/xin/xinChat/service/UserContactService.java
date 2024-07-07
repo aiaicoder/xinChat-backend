@@ -11,7 +11,7 @@ import com.xin.xinChat.model.vo.UserSearchVo;
 */
 public interface UserContactService extends IService<UserContact> {
 
-    public UserSearchVo search(String userId, String contactId);
 
-    Integer applyAdd(String applyInfo, String contactId);
+
+
 }

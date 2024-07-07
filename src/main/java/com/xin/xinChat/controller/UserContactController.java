@@ -11,12 +11,14 @@ import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.mapper.UserContactApplyMapper;
 import com.xin.xinChat.mapper.UserContactMapper;
 import com.xin.xinChat.model.dto.apply.ApplyAddRequest;
+import com.xin.xinChat.model.dto.apply.ApplyDealRequest;
 import com.xin.xinChat.model.dto.apply.ApplyQueryRequest;
 import com.xin.xinChat.model.dto.search.UserSearchRequest;
 import com.xin.xinChat.model.entity.UserContactApply;
 import com.xin.xinChat.model.vo.UserSearchVo;
 import com.xin.xinChat.service.UserContactApplyService;
 import com.xin.xinChat.service.UserContactService;
+import io.swagger.models.auth.In;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,6 +43,9 @@ public class UserContactController {
     @Resource
     private UserContactApplyMapper userContactApplyMapper;
 
+    @Resource
+    private UserContactApplyService userContactApplyService;
+
     @PostMapping("/search")
     @SaCheckLogin
     public BaseResponse<UserSearchVo> search(@RequestBody UserSearchRequest userSearchRequest) {
@@ -52,7 +57,7 @@ public class UserContactController {
         }
         String userId = userSearchRequest.getUserId();
         String contactId = userSearchRequest.getContactId();
-        UserSearchVo searchVo = userContactService.search(userId, contactId);
+        UserSearchVo searchVo = userContactApplyService.search(userId, contactId);
         return ResultUtils.success(searchVo);
     }
 
@@ -67,7 +72,7 @@ public class UserContactController {
         }
         String applyInfo = applyAddRequest.getApplyInfo();
         String contactId = applyAddRequest.getContactId();
-        Integer joinId = userContactService.applyAdd(applyInfo, contactId);
+        Integer joinId = userContactApplyService.applyAdd(applyInfo, contactId);
         return ResultUtils.success(joinId);
     }
 
@@ -83,5 +88,18 @@ public class UserContactController {
         Page<UserContactApply> applyPage = new Page<>(current,pageSize);
         userContactApplyMapper.selectUserContactApplyWithPage(applyPage,receiveUserId);
         return ResultUtils.success(applyPage);
+    }
+
+    @PostMapping("/dealWithApply")
+    @SaCheckLogin
+    public BaseResponse<Boolean> dealWithApply(@RequestBody ApplyDealRequest applyDealRequest) {
+        if (applyDealRequest == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数错误");
+        }
+        Integer status = applyDealRequest.getStatus();
+        Integer applyId = applyDealRequest.getApplyId();
+        Boolean result = userContactApplyService.dealWithApply(applyId,status);
+
+        return ResultUtils.success(null);
     }
 }

@@ -12,13 +12,4 @@ public class DemoClassTest {
 
 
 
-    @Test
-    public void testSearch() {
-        // Arrange
-        String userId = "123";
-        String contactId = "456";
-        // Mocking the behavior of the service
-       userContactService.search(userId, contactId);
-
-    }
 }
