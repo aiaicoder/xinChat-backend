@@ -17,11 +17,14 @@ import com.xin.xinChat.service.GroupInfoService;
 import com.xin.xinChat.service.UserContactApplyService;
 import com.xin.xinChat.service.UserContactService;
 import com.xin.xinChat.service.UserService;
+import com.xin.xinChat.utils.SysSettingUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author 15712
@@ -196,7 +199,11 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "处理失败");
         }
         if (status.equals(UserContactApplyStatusEnum.AGREE.getStatus())) {
-            //todo 添加联系人
+            addContact(contactApply.getApplyUserId(),
+                    contactApply.getReceiveUserId(),
+                    contactApply.getContactId(),
+                    contactApply.getContactType(),
+                    contactApply.getContactName());
             return true;
         }
         if (UserContactApplyStatusEnum.BLACKLIST == typeEnum) {
@@ -228,6 +235,45 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
         }
         return false;
 
+    }
+
+    @Override
+    public void addContact(String applyUserId, String receiveUserId, String contactId, Integer contactType, String contactName) {
+        //如果是添加的是群，那么要先判断群是否已满
+        if (UserContactEnum.GROUP.getType().equals(contactType)) {
+            QueryWrapper<UserContact> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("contactId", contactId);
+            queryWrapper.eq("status", UserContactStatusEnum.FRIEND.getStatus());
+            long count = userContactService.count(queryWrapper);
+            //获取后台默认系统设置
+            SysSettingUtil sysSettingUtil = new SysSettingUtil();
+            if (count >= sysSettingUtil.getSysSetting().getMaxGroupCount()) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "群已满");
+            }
+        }
+        //同意双方都添加好友
+        List<UserContact> userContactList = new ArrayList<>();
+        //添加人添加好友
+        UserContact userContact = new UserContact();
+        userContact.setUserId(applyUserId);
+        userContact.setContactId(receiveUserId);
+        userContact.setContactType(contactType);
+        userContact.setStatus(UserContactStatusEnum.FRIEND.getStatus());
+        userContactList.add(userContact);
+        //如果加入的不是群聊，而是申请人，那么被申请人也要同时添加上好友，群聊则不需要
+        if (UserContactEnum.USER.getType().equals(contactType)){
+            UserContact userContactReceive = new UserContact();
+            userContactReceive.setUserId(receiveUserId);
+            userContactReceive.setContactId(applyUserId);
+            userContactReceive.setContactType(contactType);
+            userContactReceive.setStatus(UserContactStatusEnum.FRIEND.getStatus());
+            userContactList.add(userContactReceive);
+        }
+        //批量插入
+        userContactService.saveBatch(userContactList);
+        //todo 如果是好友，接受人也添加申请人为好友 添加缓存
+
+        //todo 创建会话 发送消息
     }
 }
 

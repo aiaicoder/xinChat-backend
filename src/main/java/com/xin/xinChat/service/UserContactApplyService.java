@@ -11,10 +11,43 @@ import com.xin.xinChat.model.vo.UserSearchVo;
 */
 public interface UserContactApplyService extends IService<UserContactApply> {
 
+    /**
+     * 查询添加列表
+     * @param userId
+     * @param contactId
+     * @return
+     */
     UserSearchVo search(String userId, String contactId);
 
+    /**
+     * 添加好友或者群聊
+     * @param applyInfo
+     * @param contactId
+     * @return
+     */
     Integer applyAdd(String applyInfo, String contactId);
 
+
+    /**
+     * 处理好友申请
+     * @param applyId
+     * @param status
+     * @return
+     */
     boolean dealWithApply(Integer applyId, Integer status);
+
+    /**
+     *
+     * @param applyUserId
+     * @param receiveUserId
+     * @param contactId
+     * @param contactType 联系人类型，群聊或者联系人
+     * @param contactName
+     */
+     void addContact(String applyUserId,String receiveUserId, String contactId,Integer contactType,String contactName);
+
+
+
+
 
 }

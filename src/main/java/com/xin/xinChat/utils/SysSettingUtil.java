@@ -20,7 +20,7 @@ public class SysSettingUtil {
     private  RedisUtils redisUtils;
 
 
-    public  SysSettingDTO getSysSetting() {
+    public SysSettingDTO getSysSetting() {
         SysSettingDTO sysSettingDTO;
         String sysSettingStr = redisUtils.get(RedisKeyConstant.REDIS_KEY_SYS_SETTING);
         if (StringUtils.isBlank(sysSettingStr)) {

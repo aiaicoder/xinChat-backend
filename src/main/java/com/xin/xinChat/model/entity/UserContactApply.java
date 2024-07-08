@@ -4,10 +4,11 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.xin.xinChat.model.enums.UserContactApplyStatusEnum;
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 联系人申请
@@ -63,6 +64,17 @@ public class UserContactApply implements Serializable {
      */
     @TableField(exist = false)
     private String contactName;
+
+    /**
+     * 展示对应的状态
+     */
+    @TableField(exist = false)
+    private String statusName;
+
+    public String getStatusName() {
+        UserContactApplyStatusEnum enumByStatus = UserContactApplyStatusEnum.getEnumByStatus(status);
+        return enumByStatus != null ? enumByStatus.getDesc() : null;
+    }
 
 
     /**

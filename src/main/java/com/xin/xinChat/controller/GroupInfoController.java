@@ -82,7 +82,7 @@ public class GroupInfoController {
 
     @PostMapping("/getGroupInfo")
     @SaCheckLogin
-    public BaseResponse<GroupInfo> getMyJoinGroupInfo(@RequestBody GroupInfoQueryRequest groupInfoQueryRequest) {
+    public BaseResponse<GroupInfo> getGroupInfo(@RequestBody GroupInfoQueryRequest groupInfoQueryRequest) {
         if (groupInfoQueryRequest == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "参数为空");
         }

@@ -29,8 +29,9 @@
                    WHEN a.contactType = 1 THEN g.groupName
                    END AS contactName
         FROM userContactApply a
-                 LEFT JOIN user u ON u.id = a.applyUserId AND a.receiveUserId = #{receiveUserId}
-                 LEFT JOIN groupInfo g ON a.contactId = g.groupId AND a.contactType = 1 AND a.receiveUserId = #{receiveUserId}
+                 LEFT JOIN user u ON u.id = a.applyUserId
+                 LEFT JOIN groupInfo g ON a.contactId = g.groupId AND a.contactType = 1
+        where a.receiveUserId = #{receiveUserId}
         ORDER BY a.lastApplyTime DESC
     </select>
 </mapper>
