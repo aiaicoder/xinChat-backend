@@ -14,6 +14,4 @@ import lombok.EqualsAndHashCode;
 public class ApplyQueryRequest extends PageRequest {
     public String receiveUserId;
 
-
-
 }

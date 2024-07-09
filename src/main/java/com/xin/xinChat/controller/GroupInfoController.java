@@ -126,7 +126,6 @@ public class GroupInfoController {
         //组装，返回前端
         groupInfoVo.setGroupInfo(detailGroupInfo);
         groupInfoVo.setUserContactList(userContacts);
-
         return ResultUtils.success(groupInfoVo);
     }
 

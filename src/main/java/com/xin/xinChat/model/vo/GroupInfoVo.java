@@ -17,6 +17,7 @@ public class GroupInfoVo {
      * 群信息
      */
     private GroupInfo groupInfo;
+
     /**
      * 群成员
      */

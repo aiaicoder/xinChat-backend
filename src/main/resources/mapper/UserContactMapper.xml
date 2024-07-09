@@ -19,4 +19,33 @@
         createTime,status,updateTime,
         isDelete
     </sql>
+
+
+    <select id="selectUserFriend" resultType="com.xin.xinChat.model.entity.UserContact">
+        SELECT c.*, u.userName AS contactName, u.sex
+        FROM userContact c
+        INNER JOIN user u ON c.contactId = u.id
+        WHERE c.userId = #{userId}
+        AND c.contactType = #{contactType}
+        AND c.isDelete = 0
+        <if test="status != null and status.length > 0">
+            AND c.status IN
+            <foreach item="item" index="index" collection="status" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectMyJoinGroup" resultType="com.xin.xinChat.model.entity.UserContact">
+        select c.* , g.groupName contactName from userContact c
+        inner join groupInfo g on c.contactId = g.groupId
+        where c.userId = #{userId} and c.contactType = #{contactType} and c.isDelete = 0
+        and g.groupOwnerId != #{userId}
+        <if test="status != null and status.length > 0">
+            AND c.status IN
+            <foreach item="item" index="index" collection="status" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
 </mapper>
