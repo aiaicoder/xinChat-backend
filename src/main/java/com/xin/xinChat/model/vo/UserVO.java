@@ -69,7 +69,9 @@ public class UserVO implements Serializable {
      */
     private String token;
 
-
+    /**
+     * 联系人类型
+     */
     private Integer contactStatus;
 
 

@@ -1,6 +1,7 @@
 package com.xin.xinChat.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xin.xinChat.common.BaseResponse;
 import com.xin.xinChat.common.ErrorCode;
@@ -11,15 +12,21 @@ import com.xin.xinChat.mapper.UserContactMapper;
 import com.xin.xinChat.model.dto.apply.ApplyAddRequest;
 import com.xin.xinChat.model.dto.apply.ApplyDealRequest;
 import com.xin.xinChat.model.dto.apply.ApplyQueryRequest;
+import com.xin.xinChat.model.dto.contact.ContactDelRequest;
 import com.xin.xinChat.model.dto.contact.LoadUserContactRequest;
+import com.xin.xinChat.model.dto.contact.UserInfoRequest;
 import com.xin.xinChat.model.dto.search.UserSearchRequest;
+import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.entity.UserContact;
 import com.xin.xinChat.model.entity.UserContactApply;
 import com.xin.xinChat.model.enums.UserContactEnum;
 import com.xin.xinChat.model.enums.UserContactStatusEnum;
 import com.xin.xinChat.model.vo.UserSearchVo;
+import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.UserContactApplyService;
+import com.xin.xinChat.service.UserContactService;
 import com.xin.xinChat.service.UserService;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,6 +53,9 @@ public class UserContactController {
 
     @Resource
     private UserContactApplyService userContactApplyService;
+
+    @Resource
+    private UserContactService userContactService;
 
     @Resource
     private UserService userService;
@@ -124,7 +134,7 @@ public class UserContactController {
         if (userContactEnum == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
         }
-        //只展示被拉黑，被删除，正常好友，因为被删除后你并不知道你自己被删除了所以你还是能看到对方
+        //只展示被拉黑，被删除，正常好友，因为能被删除方并不知道被删除或者被拉黑
         Integer[] status = new Integer[]{UserContactStatusEnum.DEL_BE.getStatus(),
                 UserContactStatusEnum.BLACKLIST_BE.getStatus(),
                 UserContactStatusEnum.FRIEND.getStatus()};
@@ -136,6 +146,140 @@ public class UserContactController {
             userContactMapper.selectMyJoinGroup(userContactPage, userId, userContactEnum.getType(), status);
         }
         return ResultUtils.success(userContactPage);
+    }
+
+    /**
+     * 展示部分信息，不一定是好友
+     *
+     * @param userInfoRequest
+     * @return
+     */
+    @PostMapping("/getContactInfo")
+    @SaCheckLogin
+    public BaseResponse<UserVO> getContactInfo(@RequestBody UserInfoRequest userInfoRequest) {
+        if (userInfoRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+        }
+        String userId = userInfoRequest.getUserId();
+        String contactId = userInfoRequest.getContactId();
+        if (StringUtils.isBlank(userId) || StringUtils.isBlank(contactId)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+        }
+        boolean oneSelf = userService.isOneSelf(userId);
+        if (oneSelf) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+        }
+        //获取好友信息
+        User user = userService.getById(contactId);
+        UserVO userVO = userService.getUserVO(user);
+        //防止没有好友
+        if (user == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "好友不存在");
+        }
+        QueryWrapper<UserContact> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", userId);
+        queryWrapper.eq("contactId", contactId);
+        //查询好友关系
+        UserContact userContact = userContactMapper.selectOne(queryWrapper);
+        //根据好友关系设置状态
+        if (userContact != null) {
+            userVO.setContactStatus(userContact.getStatus());
+        } else {
+            userVO.setContactStatus(UserContactStatusEnum.NOT_FRIEND.getStatus());
+        }
+        return ResultUtils.success(userVO);
+    }
+
+    /**
+     * 查看更加详细信息，但是必须是好友
+     *
+     * @param userInfoRequest
+     * @return
+     */
+    @PostMapping("/getContactUserInfo")
+    @SaCheckLogin
+    public BaseResponse<UserVO> getContactUserInfo(@RequestBody UserInfoRequest userInfoRequest) {
+        if (userInfoRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+        }
+        String userId = userInfoRequest.getUserId();
+        String contactId = userInfoRequest.getContactId();
+        if (StringUtils.isBlank(userId) || StringUtils.isBlank(contactId)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+        }
+        boolean oneSelf = userService.isOneSelf(userId);
+        if (oneSelf) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+        }
+        QueryWrapper<UserContact> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", userId);
+        queryWrapper.eq("contactId", contactId);
+        //查询好友关系
+        UserContact userContact = userContactMapper.selectOne(queryWrapper);
+
+        //除了是好友、被拉黑、被删除，之外都不能查看详细信息，因为只有是添加了好友之后才能看到更加详细的信息
+        if (null == userContact || !ArrayUtils.contains(new Integer[]{
+                UserContactStatusEnum.FRIEND.getStatus(),
+                UserContactStatusEnum.BLACKLIST_BE.getStatus(),
+                UserContactStatusEnum.DEL_BE.getStatus()
+        }, userContact.getStatus())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "好友不存在");
+        }
+        User user = userService.getById(contactId);
+        UserVO userVO = userService.getUserVO(user);
+        userVO.setContactStatus(userContact.getStatus());
+        return ResultUtils.success(userVO);
+    }
+
+
+    /**
+     * 查看更加详细信息，但是必须是好友
+     *
+     * @param contactDelRequest
+     * @return
+     */
+    @PostMapping("/delContact")
+    @SaCheckLogin
+    public BaseResponse<Boolean> delContact(@RequestBody ContactDelRequest contactDelRequest) {
+        if (contactDelRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+        }
+        String userId = contactDelRequest.getUserId();
+        String contactId = contactDelRequest.getContactId();
+        if (StringUtils.isBlank(userId) || StringUtils.isBlank(contactId)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+        }
+        boolean oneSelf = userService.isOneSelf(userId);
+        if (oneSelf) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+        }
+        boolean b = userContactService.delContact(userId, contactId, UserContactStatusEnum.DEL.getStatus());
+        return ResultUtils.success(b);
+    }
+
+    /**
+     * 查看更加详细信息，但是必须是好友
+     *
+     * @param contactDelRequest
+     * @return
+     */
+    @PostMapping("/blackContact")
+    @SaCheckLogin
+    public BaseResponse<Boolean> blackContact(@RequestBody ContactDelRequest contactDelRequest) {
+        if (contactDelRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+        }
+        String userId = contactDelRequest.getUserId();
+        String contactId = contactDelRequest.getContactId();
+        if (StringUtils.isBlank(userId) || StringUtils.isBlank(contactId)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+        }
+        boolean oneSelf = userService.isOneSelf(userId);
+        if (!oneSelf) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无权限");
+        }
+        boolean b = userContactService.delContact(userId, contactId, UserContactStatusEnum.BLACKLIST.getStatus());
+        return ResultUtils.success(b);
     }
 
 }

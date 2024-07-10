@@ -18,4 +18,5 @@ public class StringUtil {
     public static String getGroupId() {
         return UserContactEnum.GROUP.getPrefix() + RandomStringUtils.random(UserConstant.ID_LENGTH, false, true);
     }
+
 }

@@ -18,6 +18,7 @@ import com.xin.xinChat.service.UserContactApplyService;
 import com.xin.xinChat.service.UserContactService;
 import com.xin.xinChat.service.UserService;
 import com.xin.xinChat.utils.SysSettingUtil;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +66,7 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
                 break;
             case GROUP:
                 GroupInfo groupInfo = groupInfoService.getById(contactId);
-                if (groupInfo == null || groupInfo.getStatus().equals(GroupInfoEnum.DELETE.getStatus())) {
+                if (groupInfo == null || groupInfo.getStatus().equals(GroupInfoEnum.DISMISSAL.getStatus())) {
                     return null;
                 }
                 userSearchVo.setNickName(groupInfo.getGroupName());
@@ -114,12 +115,15 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
         queryWrapper.eq("userId", userApplyId);
         queryWrapper.eq("contactId", contactId);
         UserContact userContact = userContactService.getOne(queryWrapper);
-        if (userContact != null && userContact.getStatus().equals(UserContactStatusEnum.BLACKLIST_BE.getStatus())) {
+        if (userContact != null && ArrayUtils.contains(
+                new Integer[]{UserContactStatusEnum.BLACKLIST_BE_FIRST.getStatus(),
+                        UserContactStatusEnum.BLACKLIST_BE.getStatus()},
+                userContact.getStatus())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "你已被拉黑，暂时无法添加");
         }
         if (UserContactEnum.GROUP == typeEnum) {
             GroupInfo groupInfo = groupInfoService.getById(contactId);
-            if (groupInfo == null || groupInfo.getStatus().equals(GroupInfoEnum.DELETE.getStatus())) {
+            if (groupInfo == null || groupInfo.getStatus().equals(GroupInfoEnum.DISMISSAL.getStatus())) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "群聊不存在或已解散");
             }
             receiveId = groupInfo.getGroupOwnerId();
@@ -221,14 +225,14 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
                 userContact.setUserId(applyUserId);
                 userContact.setContactId(contactId);
                 userContact.setContactType(contactType);
-                userContact.setStatus(UserContactStatusEnum.BLACKLIST_BE.getStatus());
+                userContact.setStatus(UserContactStatusEnum.BLACKLIST_BE_FIRST.getStatus());
                 userContactService.updateById(userContact);
             } else {
                 //添加
                 userContact.setUserId(applyUserId);
                 userContact.setContactId(contactId);
                 userContact.setContactType(contactType);
-                userContact.setStatus(UserContactStatusEnum.BLACKLIST_BE.getStatus());
+                userContact.setStatus(UserContactStatusEnum.BLACKLIST_BE_FIRST.getStatus());
                 userContactService.save(userContact);
             }
             return true;

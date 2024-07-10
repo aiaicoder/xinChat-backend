@@ -7,7 +7,7 @@ package com.xin.xinChat.model.enums;
  */
 public enum GroupInfoEnum {
     NORMAL(0, "正常"),
-    DELETE(1, "解散");
+    DISMISSAL(1, "解散");
 
     private final Integer status;
     private final String desc;

@@ -10,8 +10,5 @@ import com.xin.xinChat.model.vo.UserSearchVo;
 * @createDate 2024-06-20 20:46:55
 */
 public interface UserContactService extends IService<UserContact> {
-
-
-
-
+    boolean delContact(String userId,String contactId,Integer status);
 }

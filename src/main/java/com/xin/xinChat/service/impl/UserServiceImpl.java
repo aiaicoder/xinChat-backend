@@ -290,6 +290,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return queryWrapper;
     }
 
+    @Override
+    public boolean isOneSelf(String userId) {
+        User loginUser = getLoginUser();
+        return loginUser.getId().equals(userId);
+    }
+
+
     public static void main(String[] args) {
         String userId = StringUtil.getUserId();
         System.out.println(userId);
