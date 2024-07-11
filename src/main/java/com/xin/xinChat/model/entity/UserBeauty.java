@@ -10,6 +10,7 @@ import java.io.Serializable;
 
 /**
  * 靓号表
+ * @author 15712
  * @TableName UserBeauty
  */
 @TableName(value ="UserBeauty")

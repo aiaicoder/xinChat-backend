@@ -16,10 +16,7 @@ import com.xin.xinChat.mapper.UserMapper;
 import com.xin.xinChat.model.dto.user.UserQueryRequest;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.entity.UserBeauty;
-import com.xin.xinChat.model.enums.BeautyAccountStatusEnum;
-import com.xin.xinChat.model.enums.JoinTypeEnum;
-import com.xin.xinChat.model.enums.UserContactEnum;
-import com.xin.xinChat.model.enums.UserRoleEnum;
+import com.xin.xinChat.model.enums.*;
 import com.xin.xinChat.model.vo.LoginUserVO;
 import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.UserService;
@@ -53,10 +50,7 @@ import static com.xin.xinChat.constant.UserConstant.*;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    /**
-     * 盐值，混淆密码
-     */
-    public static final String SALT = "xin";
+
 
 
     @Resource
@@ -171,7 +165,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null) {
             log.info("user login failed, email cannot match userPassword");
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或密码错误");
-        } else if (user.getUserRole().equals(UserRoleEnum.BAN.getValue())) {
+        } else if (user.getUserStatus().equals(UserStatusEnum.DISABLE.getStatus())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户已被封禁");
         }
         StpUtil.login(user.getId());
@@ -235,6 +229,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
         }
         StpUtil.logout();
+        //todo 关闭ws连接
         return true;
     }
 
@@ -246,6 +241,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         LoginUserVO loginUserVO = new LoginUserVO();
         BeanUtils.copyProperties(user, loginUserVO);
+        loginUserVO.setContactStatus(UserContactStatusEnum.FRIEND.getStatus());
         return loginUserVO;
     }
 
@@ -290,15 +286,42 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return queryWrapper;
     }
 
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateUser(User loginUser) {
+        String userId = loginUser.getId();
+        //先查询不会锁行，如果先进行更新操作会锁行，这样效率就会慢
+        User dbUser = getById(userId);
+        boolean b = updateById(loginUser);
+        String contactName = null;
+        if (dbUser.getUserName().equals(loginUser.getUserName())) {
+            contactName = loginUser.getUserName();
+        }
+        //todo 更新会话信息中的昵称信息
+        return b;
+    }
+
+    /**
+     * 强制踢出
+     * @param userId
+     */
+    @Override
+    public void forceKickOut(String userId) {
+        StpUtil.kickout(userId);
+        //todo 发送消息通知
+    }
+
+    /**
+     * 判断是否是本人
+     * @param userId
+     * @return
+     */
     @Override
     public boolean isOneSelf(String userId) {
         User loginUser = getLoginUser();
         return loginUser.getId().equals(userId);
     }
 
-
-    public static void main(String[] args) {
-        String userId = StringUtil.getUserId();
-        System.out.println(userId);
-    }
 }

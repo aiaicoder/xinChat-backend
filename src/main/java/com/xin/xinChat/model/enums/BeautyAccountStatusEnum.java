@@ -7,8 +7,7 @@ package com.xin.xinChat.model.enums;
  */
 public enum BeautyAccountStatusEnum {
     NO_USE(0,"未使用"),
-    USING(1,"使用中"),
-    ;
+    USING(1,"使用中");
     private Integer status;
     private String desc;
     BeautyAccountStatusEnum(Integer status,String desc)

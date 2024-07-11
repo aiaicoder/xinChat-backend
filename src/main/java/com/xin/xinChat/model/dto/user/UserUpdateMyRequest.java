@@ -1,6 +1,8 @@
 package com.xin.xinChat.model.dto.user;
 
 import java.io.Serializable;
+
+import io.swagger.models.auth.In;
 import lombok.Data;
 
 /**
@@ -26,6 +28,26 @@ public class UserUpdateMyRequest implements Serializable {
      * 简介
      */
     private String userProfile;
+
+    /**
+     * 性别
+     */
+    private Integer sex;
+
+    /**
+     * 用户地区编号
+     */
+    private Integer areaCode;
+
+    /**
+     * 用户地区
+     */
+    private String areaName;
+
+    /**
+     * 好友申请条件
+     */
+    private Integer joinType;
 
     private static final long serialVersionUID = 1L;
 }

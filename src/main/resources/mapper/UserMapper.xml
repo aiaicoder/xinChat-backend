@@ -20,6 +20,8 @@
             <result property="areaCode" column="areaCode" jdbcType="VARCHAR"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
             <result property="lastOffTime" column="lastOffTime" jdbcType="BIGINT"/>
+            <result property="token" column="token" jdbcType="VARCHAR"/>
+            <result property="userStatus" column="userStatus" jdbcType="TINYINT"/>
             <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
@@ -28,7 +30,7 @@
         userName,joinType,sex,
         userAvatar,userProfile,userRole,
         createTime,lastLoginTime,areaName,
-        areaCode,updateTime,lastOffTime,
+        areaCode,updateTime,lastOffTime,userStatus,
         isDelete
     </sql>
 </mapper>

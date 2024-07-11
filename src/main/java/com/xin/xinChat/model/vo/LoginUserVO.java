@@ -68,7 +68,9 @@ public class LoginUserVO implements Serializable {
      */
     private String token;
 
-
+    /**
+     * 联系状态
+     */
     private Integer contactStatus;
 
 

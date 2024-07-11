@@ -57,4 +57,10 @@ public interface UserConstant {
      * 默认申请信息
      */
     String DEFAULT_APPLY_INFO = "我是%s";
+
+
+    /**
+     * 盐值，混淆密码
+     */
+    String SALT = "xin";
 }

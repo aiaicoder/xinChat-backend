@@ -88,4 +88,7 @@ public interface UserService extends IService<User> {
 
     boolean isOneSelf(String userId);
 
+    boolean updateUser(User loginUser);
+
+    void forceKickOut(String userId);
 }

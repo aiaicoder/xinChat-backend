@@ -105,10 +105,17 @@ public class User implements Serializable {
     private String token;
 
     /**
+     * 用户状态
+     */
+    private Integer userStatus;
+
+    /**
      * 是否删除
      */
     @TableLogic
     private Integer isDelete;
+
+
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

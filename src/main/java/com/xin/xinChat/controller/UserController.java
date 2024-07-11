@@ -4,7 +4,6 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.UUID;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wf.captcha.ArithmeticCaptcha;
 import com.xin.xinChat.common.BaseResponse;
@@ -26,7 +25,6 @@ import com.xin.xinChat.utils.SysSettingUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +34,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import static com.xin.xinChat.constant.UserConstant.SALT;
+
 
 /**
  * 用户接口
@@ -54,8 +55,7 @@ public class UserController {
     @Resource
     private RedisUtils redisUtils;
 
-    @Resource
-    private SysSettingUtil sysSettingUtil;
+
 
 
     @GetMapping("/checkCode")
@@ -121,12 +121,7 @@ public class UserController {
     }
 
 
-    @GetMapping("/getSysSetting")
 
-    public BaseResponse<SysSettingDTO> getSysSetting() {
-        SysSettingDTO sysSettingDTO = sysSettingUtil.getSysSetting();
-        return ResultUtils.success(sysSettingDTO);
-    }
 
     /**
      * 用户注销(使用框架实现的用户注销)
@@ -139,10 +134,29 @@ public class UserController {
         return ResultUtils.success(result);
     }
 
+    @PostMapping("/updatePassword")
+    @SaCheckLogin
+    public BaseResponse<String> updatePassword(@RequestBody UpdatePasswordRequest updatePasswordRequest) {
+        String userPassword = updatePasswordRequest.getUserPassword();
+        String checkPassword = updatePasswordRequest.getCheckPassword();
+        if (StringUtils.isBlank(userPassword) || StringUtils.isBlank(checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请输入新密码并确认密码");
+        }
+        if (!userPassword.equals(checkPassword)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码不一致");
+        }
+        String newEncryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+        User loginUser = userService.getLoginUser();
+        loginUser.setUserPassword( newEncryptPassword);
+        userService.updateById(loginUser);
+        //修改密码后重新登录
+        userService.userLogout();
+        return ResultUtils.success("修改成功");
+    }
+
 
     /**
      * 获取当前登录用户
-     *
      * @param
      * @return
      */
@@ -152,118 +166,29 @@ public class UserController {
         return ResultUtils.success(userService.getLoginUserVO(user));
     }
 
-    // endregion
-
-    // region 增删改查
 
     /**
-     * 创建用户
-     *
-     * @param userAddRequest
+     * 更新个人信息
+     * @param userUpdateMyRequest
      * @return
      */
-    @PostMapping("/add")
-    @SaCheckRole(UserConstant.ADMIN_ROLE)
-    public BaseResponse<String> addUser(@RequestBody UserAddRequest userAddRequest) {
-        if (userAddRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User user = new User();
-        BeanUtils.copyProperties(userAddRequest, user);
-        // 默认密码 12345678
-        String defaultPassword = "12345678";
-        String SALT = "xin";
-        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + defaultPassword).getBytes());
-        user.setUserPassword(encryptPassword);
-        boolean result = userService.save(user);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(user.getId());
-    }
-
-    /**
-     * 删除用户
-     *
-     * @param deleteRequest
-     * @return
-     */
-    @PostMapping("/delete")
-    @SaCheckRole(UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
-        if (deleteRequest == null || deleteRequest.getId() == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        boolean b = userService.removeById(deleteRequest.getId());
-        return ResultUtils.success(b);
-    }
-
-
-    /**
-     * 更新用户
-     *
-     * @param userUpdateRequest
-     * @return
-     */
-    @PostMapping("/update")
-    @SaCheckRole(UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest) {
-        if (userUpdateRequest == null || userUpdateRequest.getId() == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User user = new User();
-        BeanUtils.copyProperties(userUpdateRequest, user);
-        boolean result = userService.updateById(user);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(true);
-    }
-
-    /**
-     * 根据 id 获取用户（仅管理员）
-     *
-     * @param id
-     * @param request
-     * @return
-     */
-    @GetMapping("/get")
+    @PostMapping("/update/my")
     @SaCheckLogin
-    @SaCheckRole(UserConstant.ADMIN_ROLE)
-    public BaseResponse<User> getUserById(long id, HttpServletRequest request) {
-        if (id <= 0) {
+    public BaseResponse<LoginUserVO> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest) {
+        if (userUpdateMyRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User user = userService.getById(id);
-        ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
-        return ResultUtils.success(user);
-    }
-
-    /**
-     * 根据 id 获取包装类
-     *
-     * @param id
-     * @param request
-     * @return
-     */
-    @GetMapping("/get/vo")
-    @SaCheckLogin
-    public BaseResponse<UserVO> getUserVOById(long id, HttpServletRequest request) {
-        BaseResponse<User> response = getUserById(id, request);
-        User user = response.getData();
-        return ResultUtils.success(userService.getUserVO(user));
-    }
-
-    /**
-     * 分页获取用户列表（仅管理员）
-     *
-     * @param userQueryRequest
-     * @return
-     */
-    @PostMapping("/list/page")
-    @SaCheckRole(UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<User>> listUserByPage(@RequestBody UserQueryRequest userQueryRequest) {
-        long current = userQueryRequest.getCurrent();
-        long size = userQueryRequest.getPageSize();
-        Page<User> userPage = userService.page(new Page<>(current, size),
-                userService.getQueryWrapper(userQueryRequest));
-        return ResultUtils.success(userPage);
+        User loginUser = userService.getLoginUser();
+        BeanUtils.copyProperties(userUpdateMyRequest, loginUser);
+        System.out.println("更新用户" + loginUser);
+        boolean result = userService.updateUser(loginUser);
+        //更新完用户状态重新修改用户信息
+        StpUtil.getSession().set(UserConstant.USER_LOGIN_STATE, loginUser);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        User newLoginUser = userService.getLoginUser();
+        //只返回最新的用户信息
+        LoginUserVO loginUserVO = userService.getLoginUserVO(newLoginUser);
+        return ResultUtils.success(loginUserVO);
     }
 
     /**
@@ -273,7 +198,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/list/page/vo")
-    public BaseResponse<Page<UserVO>> listUserVOByPage(@RequestBody UserQueryRequest userQueryRequest) {
+    public BaseResponse<Page<UserVO>> listUserVoByPage(@RequestBody UserQueryRequest userQueryRequest) {
         if (userQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -283,32 +208,11 @@ public class UserController {
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         Page<User> userPage = userService.page(new Page<>(current, size),
                 userService.getQueryWrapper(userQueryRequest));
-        Page<UserVO> userVOPage = new Page<>(current, size, userPage.getTotal());
+        Page<UserVO> userVoPage = new Page<>(current, size, userPage.getTotal());
         List<UserVO> userVO = userService.getUserVO(userPage.getRecords());
-        userVOPage.setRecords(userVO);
-        return ResultUtils.success(userVOPage);
+        userVoPage.setRecords(userVO);
+        return ResultUtils.success(userVoPage);
     }
 
-    // endregion
 
-    /**
-     * 更新个人信息
-     *
-     * @param userUpdateMyRequest
-     * @return
-     */
-    @PostMapping("/update/my")
-    public BaseResponse<Boolean> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest) {
-        if (userUpdateMyRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User loginUser = userService.getLoginUser();
-        BeanUtils.copyProperties(userUpdateMyRequest, loginUser);
-        System.out.println("更新用户" + loginUser);
-        boolean result = userService.updateById(loginUser);
-        //更新完用户状态重新修改用户信息
-        StpUtil.getSession().set(UserConstant.USER_LOGIN_STATE, loginUser);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(true);
-    }
 }
