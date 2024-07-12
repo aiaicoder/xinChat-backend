@@ -12,7 +12,6 @@
             <result property="groupNotice" column="groupNotice" jdbcType="VARCHAR"/>
             <result property="joinType" column="joinType" jdbcType="TINYINT"/>
             <result property="status" column="status" jdbcType="TINYINT"/>
-            <result property="memberCount" column="memberCount" jdbcType="INTEGER"/>
             <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
@@ -23,4 +22,19 @@
             groupAvatar,
         status,isDelete
     </sql>
+    <select id="loadGroupInfo" resultType="com.xin.xinChat.model.entity.GroupInfo">
+        SELECT g.*,
+        (SELECT u.userName FROM user u WHERE g.groupOwnerId = u.id) AS ownerName,
+        (SELECT count(1) FROM userContact u WHERE g.groupId = u.contactId) AS memberCount
+        FROM groupInfo g
+        <if test="groupInfoQueryRequest.groupId != ''">
+            WHERE g.groupId = #{groupInfoQueryRequest.groupId}
+        </if>
+        <if test="groupInfoQueryRequest.userId != ''">
+            where g.groupOwnerId = #{groupInfoQueryRequest.userId}
+        </if>
+        <if test="groupInfoQueryRequest.groupName != ''">
+            where g.groupName LIKE CONCAT('%', #{groupInfoQueryRequest.groupName}, '%')
+        </if>
+    </select>
 </mapper>

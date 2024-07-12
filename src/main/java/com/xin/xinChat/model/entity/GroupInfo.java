@@ -73,6 +73,13 @@ public class GroupInfo implements Serializable {
     @JsonIgnore
     private Integer isDelete;
 
+    /**
+     * 群组创建者名字
+     */
+    @TableField(exist = false)
+    private String ownerName;
+
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

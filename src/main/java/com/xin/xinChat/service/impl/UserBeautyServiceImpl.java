@@ -10,6 +10,7 @@ import com.xin.xinChat.model.entity.UserBeauty;
 import com.xin.xinChat.model.enums.BeautyAccountStatusEnum;
 import com.xin.xinChat.service.UserBeautyService;
 import com.xin.xinChat.service.UserService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -24,6 +25,7 @@ public class UserBeautyServiceImpl extends ServiceImpl<UserBeautyMapper, UserBea
         implements UserBeautyService {
 
     @Resource
+    @Lazy
     private UserService userService;
 
     /**

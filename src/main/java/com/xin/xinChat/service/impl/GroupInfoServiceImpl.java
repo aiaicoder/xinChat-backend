@@ -2,6 +2,7 @@ package com.xin.xinChat.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.exception.BusinessException;
@@ -9,6 +10,7 @@ import com.xin.xinChat.mapper.GroupInfoMapper;
 import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.entity.GroupInfo;
 import com.xin.xinChat.model.entity.UserContact;
+import com.xin.xinChat.model.enums.GroupInfoEnum;
 import com.xin.xinChat.model.enums.UserContactEnum;
 import com.xin.xinChat.model.enums.UserContactStatusEnum;
 import com.xin.xinChat.service.GroupInfoService;
@@ -89,6 +91,33 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
             }
         }
         return null;
+    }
+
+    /**
+     * 管理员和普通的群聊可以解散
+     * @param groupOwnerId
+     * @param groupId
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void dismissGroup(String groupOwnerId, String groupId) {
+        GroupInfo dbInfo = getById(groupId);
+        if (!dbInfo.getGroupOwnerId().equals(groupOwnerId)){
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        //解散群聊
+        GroupInfo groupInfo = new GroupInfo();
+        groupInfo.setGroupId(groupId);
+        groupInfo.setStatus(GroupInfoEnum.DISMISSAL.getStatus());
+        this.updateById(groupInfo);
+        //更新联系人信息
+        UpdateWrapper<UserContact> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("contactId",groupId);
+        updateWrapper.eq("contactType",UserContactEnum.GROUP.getType());
+        updateWrapper.set("status",UserContactStatusEnum.DEL.getStatus());
+        userContactService.update(updateWrapper);
+        //todo 移除相关 群聊的联系人缓存
+        //todo 发消息 1.更新会话消息，2.记录群消息，3.发送群解散通知
     }
 }
 

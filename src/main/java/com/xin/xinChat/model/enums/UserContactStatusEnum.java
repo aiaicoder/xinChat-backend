@@ -8,7 +8,7 @@ package com.xin.xinChat.model.enums;
 public enum UserContactStatusEnum {
     NOT_FRIEND(0, "未好友"),
     FRIEND(1, "好友"),
-    DEL(2, "已删除好友"),
+    DEL(2, "已删除好友或退出群聊"),
     DEL_BE(3, "被删除"),
     BLACKLIST(4, "黑名单"),
     BLACKLIST_BE(5, "被拉黑"),

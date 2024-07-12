@@ -12,4 +12,5 @@ public interface GroupInfoService extends IService<GroupInfo> {
 
     String saveGroup(GroupInfo groupInfo);
 
+    void dismissGroup(String groupOwnerId, String groupId);
 }

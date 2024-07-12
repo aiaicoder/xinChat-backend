@@ -168,18 +168,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         } else if (user.getUserStatus().equals(UserStatusEnum.DISABLE.getStatus())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户已被封禁");
         }
-        StpUtil.login(user.getId());
-        // 3. 记录用户的登录态
-        StpUtil.getSession().set(USER_LOGIN_STATE, user);
-        //设置token，返回给前端
-        SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
-        user.setToken(tokenInfo.getTokenValue());
         String adminEmail = appConfig.getAdminEmail();
         String userEmail = user.getEmail();
         //如果有配置中的管理员邮箱那么就给改用户设置管理员，前提是该用户之前不是管理员
         if (ArrayUtil.contains(adminEmail.split(","), userEmail) && !user.getUserRole().equals(UserRoleEnum.ADMIN.getValue())) {
             user.setUserRole(UserRoleEnum.ADMIN.getValue());
         }
+        StpUtil.login(user.getId());
+        // 3. 记录用户的登录态
+        StpUtil.getSession().set(USER_LOGIN_STATE, user);
+        //设置token，返回给前端
+        SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
+        user.setToken(tokenInfo.getTokenValue());
         //todo 查询我的联系人
         //todo 查询我的群组
         return this.getLoginUserVO(user);

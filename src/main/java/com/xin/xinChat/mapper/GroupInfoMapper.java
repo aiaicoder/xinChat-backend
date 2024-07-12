@@ -1,7 +1,10 @@
 package com.xin.xinChat.mapper;
-
-import com.xin.xinChat.model.entity.GroupInfo;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xin.xinChat.model.dto.group.GroupInfoQueryRequest;
+import com.xin.xinChat.model.entity.GroupInfo;
+import org.apache.ibatis.annotations.Param;
 
 /**
 * @author 15712
@@ -10,6 +13,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @Entity com.xin.xinChat.model.entity.GroupInfoEnum
 */
 public interface GroupInfoMapper extends BaseMapper<GroupInfo> {
+
+    IPage<GroupInfo> loadGroupInfo(Page<GroupInfo> page, @Param("groupInfoQueryRequest")GroupInfoQueryRequest groupInfoQueryRequest);
 
 }
 
