@@ -22,8 +22,21 @@ public class RedisUtils {
         return stringRedisTemplate.opsForValue().get(key);
     }
 
+    /**
+     * 有过期时间
+     * @param key
+     * @param value
+     * @param expireTime
+     * @param timeUnit
+     */
     public void set(String key, String value, Long expireTime, TimeUnit timeUnit) {
         stringRedisTemplate.opsForValue().set(key, value, expireTime, timeUnit);
+    }
+    /**
+     * 不设置过期时间
+     */
+    public void set(String key, String value) {
+        stringRedisTemplate.opsForValue().set(key, value);
     }
 
 }

@@ -42,6 +42,10 @@ public class SysSettingDTO implements Serializable {
      */
     private String robotUid = UserConstant.ROBOT_UID;
     /**
+     * 机器人头像
+     */
+    private String robotAvatar ="";
+    /**
      * 机器人昵称
      */
     private String robotNickName ="XinChat";

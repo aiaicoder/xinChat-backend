@@ -1,27 +1,23 @@
 package com.xin.xinChat.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
-import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wf.captcha.ArithmeticCaptcha;
 import com.xin.xinChat.common.BaseResponse;
-import com.xin.xinChat.common.DeleteRequest;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.common.ResultUtils;
 import com.xin.xinChat.constant.RedisKeyConstant;
 import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.exception.ThrowUtils;
-import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.dto.user.*;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.vo.LoginUserVO;
 import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.UserService;
 import com.xin.xinChat.utils.RedisUtils;
-import com.xin.xinChat.utils.SysSettingUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -29,7 +25,6 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

@@ -31,4 +31,7 @@ public class SysSettingUtil {
         return sysSettingDTO;
     }
 
+    public void saveSysSetting(SysSettingDTO sysSettingDTO) {
+        redisUtils.set(RedisKeyConstant.REDIS_KEY_SYS_SETTING, JSONUtil.toJsonStr(sysSettingDTO));
+    }
 }
