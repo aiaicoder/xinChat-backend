@@ -1,10 +1,12 @@
 package com.xin.xinChat.websocket.netty;
 
 import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * @author <a href="https://github.com/aiaicoder">  小新
@@ -12,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2024/7/13 19:56
  */
 @Slf4j
+@Component
+@ChannelHandler.Sharable
 public class HandlerHeartBeat extends ChannelDuplexHandler {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {

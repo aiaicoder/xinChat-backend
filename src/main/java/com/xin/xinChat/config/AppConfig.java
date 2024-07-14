@@ -17,7 +17,7 @@ public class AppConfig {
      * websocket 连接地址
      */
     @Value("${ws.port:8104}")
-    public String wsPort;
+    public Integer wsPort;
 
     /**
      * 管理员邮箱
