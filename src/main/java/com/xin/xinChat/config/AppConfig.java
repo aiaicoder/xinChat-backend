@@ -25,5 +25,8 @@ public class AppConfig {
     @Value("${admin.email}")
     public String adminEmail;
 
+    @Value("${sa-token.timeout}")
+    public Long tokenTimeout;
+
 
 }

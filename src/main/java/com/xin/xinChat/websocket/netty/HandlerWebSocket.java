@@ -1,21 +1,21 @@
 package com.xin.xinChat.websocket.netty;
 
-import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
-import com.xin.xinChat.model.vo.UserVO;
+import com.xin.xinChat.utils.RedisUtils;
+import com.xin.xinChat.websocket.ChannelContextUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
-import static com.xin.xinChat.constant.UserConstant.USER_LOGIN_STATE;
+import javax.annotation.Resource;
 
 /**
  * @author <a href="https://github.com/aiaicoder">  小新
@@ -28,8 +28,16 @@ import static com.xin.xinChat.constant.UserConstant.USER_LOGIN_STATE;
 public class HandlerWebSocket extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
 
+    @Resource
+    private ChannelContextUtils channelContextUtils;
+
+    @Resource
+    RedisUtils redisUtils;
+
+
     /**
      * 通道就绪后调用，一般用户用来做初始化
+     *
      * @param ctx
      * @throws Exception
      */
@@ -46,7 +54,12 @@ public class HandlerWebSocket extends SimpleChannelInboundHandler<TextWebSocketF
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame textWebSocketFrame) throws Exception {
         Channel channel = ctx.channel();
-        log.info("接收到消息：{}",textWebSocketFrame.text());
+        Attribute<String> attr = channel.attr(AttributeKey.valueOf(channel.id().toString()));
+        String userId = attr.get();
+        //收到消息保存心跳
+        redisUtils.setHeartBeatTime(userId);
+        channelContextUtils.sentToGroup("G10000", textWebSocketFrame.text());
+        log.info("接收到消息userId：{}的消息：{}", userId, textWebSocketFrame.text());
     }
 
     public Object getUser(String token){
@@ -56,23 +69,24 @@ public class HandlerWebSocket extends SimpleChannelInboundHandler<TextWebSocketF
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         //因为websocket是基于tcp的长连接，所以需要判断是否是握手完成事件
-        if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete){
+        if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
             WebSocketServerProtocolHandler.HandshakeComplete complete = (WebSocketServerProtocolHandler.HandshakeComplete) evt;
             log.info("握手成功");
             String url = complete.requestUri();
             String token = getToken(url);
-            Object user = getUser(token);
-            if (user == null){
-                log.info("非法请求");
-                ctx.close();
-                return;
-            }
-            if (token == null){
+            if (token == null) {
                 log.info("token为空");
                 ctx.close();
                 return;
             }
-            log.info("url:{}",url);
+            String userId = (String) getUser(token);
+            if (userId == null) {
+                log.info("token非法");
+                ctx.close();
+                return;
+            }
+            channelContextUtils.addContext(userId, ctx.channel());
+            log.info("url:{}", url);
         }
     }
 

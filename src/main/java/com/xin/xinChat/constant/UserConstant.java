@@ -1,6 +1,7 @@
 package com.xin.xinChat.constant;
 
 import com.xin.xinChat.model.enums.UserContactEnum;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * 用户常量
@@ -33,11 +34,6 @@ public interface UserConstant {
     int ID_LENGTH = 11;
 
     /**
-     * 被封号
-     */
-    String BAN_ROLE = "ban";
-
-    /**
      * 默认头像
      */
     String DEFAULT_AVATAR ="https://my-notes-li.oss-cn-beijing.aliyuncs.com/li/4d7582688ef167dd8c910c111f22dae.jpg";
@@ -57,6 +53,7 @@ public interface UserConstant {
      * 默认申请信息
      */
     String DEFAULT_APPLY_INFO = "我是%s";
+
 
 
     /**

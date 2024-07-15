@@ -16,16 +16,19 @@ import com.xin.xinChat.mapper.UserMapper;
 import com.xin.xinChat.model.dto.user.UserQueryRequest;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.entity.UserBeauty;
+import com.xin.xinChat.model.entity.UserContact;
 import com.xin.xinChat.model.enums.*;
 import com.xin.xinChat.model.vo.LoginUserVO;
 import com.xin.xinChat.model.vo.UserVO;
+import com.xin.xinChat.service.UserContactService;
 import com.xin.xinChat.service.UserService;
+import com.xin.xinChat.utils.RedisUtils;
 import com.xin.xinChat.utils.SqlUtils;
 import com.xin.xinChat.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -34,6 +37,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -51,13 +55,15 @@ import static com.xin.xinChat.constant.UserConstant.*;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
 
-
-
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
-
     @Resource
     private UserBeautyServiceImpl userBeautyService;
+
+    @Resource
+    @Lazy
+    private UserContactService userContactService;
+
+    @Resource
+    RedisUtils redisUtils;
 
 
     @Resource
@@ -70,9 +76,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (StringUtils.isAnyBlank(email, userPassword, checkPassword, checkCode, checkCodeKey)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
-        if (!checkCode.equals(stringRedisTemplate.opsForValue().get(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
+
+        if (!checkCode.equals(redisUtils.get(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
             log.error("checkCodeKey:{}", checkCodeKey);
-            stringRedisTemplate.delete(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey);
+            redisUtils.delete(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey);
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片验证码错误");
         }
         if (userPassword.length() < 8 || checkPassword.length() < 8 || checkPassword.length() > 32 || userPassword.length() > 32) {
@@ -149,9 +156,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (userPassword.length() < 8) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
         }
-        if (!checkCode.equals(stringRedisTemplate.opsForValue().get(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
+
+        if (!checkCode.equals(redisUtils.get(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
             log.error("checkCodeKey:{}", checkCodeKey);
-            stringRedisTemplate.delete(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey);
+            redisUtils.delete(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey);
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片验证码错误");
         }
         // 2. 加密
@@ -168,6 +176,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         } else if (user.getUserStatus().equals(UserStatusEnum.DISABLE.getStatus())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户已被封禁");
         }
+        //校验用户是否在线
+        if (redisUtils.getHeartBeatTime(user.getId()) != null) {
+            throw new BusinessException(ErrorCode.USING_ERROR, "账号正在使用中");
+        }
         String adminEmail = appConfig.getAdminEmail();
         String userEmail = user.getEmail();
         //如果有配置中的管理员邮箱那么就给改用户设置管理员，前提是该用户之前不是管理员
@@ -180,7 +192,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //设置token，返回给前端
         SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
         user.setToken(tokenInfo.getTokenValue());
-        //todo 查询我的联系人
+        //查询我的联系人
+        QueryWrapper<UserContact> userContactQueryWrapper = new QueryWrapper<>();
+        userContactQueryWrapper.eq("userId", user.getId());
+        userContactQueryWrapper.eq("status", UserContactStatusEnum.FRIEND.getStatus());
+        List<UserContact> userContactList = userContactService.list(userContactQueryWrapper);
+        List<String> contactList = userContactList.stream().map(UserContact::getContactId).collect(Collectors.toList());
+        redisUtils.delUserContact(user.getId());
+        if (!contactList.isEmpty()){
+            redisUtils.addUserContactBatch(user.getId(), contactList, appConfig.getTokenTimeout(), TimeUnit.SECONDS);
+        }
         //todo 查询我的群组
         return this.getLoginUserVO(user);
     }
