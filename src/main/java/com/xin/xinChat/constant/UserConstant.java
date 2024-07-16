@@ -41,7 +41,8 @@ public interface UserConstant {
     /**
      * 默认随机生成用户名
      */
-    String DEFAULT_USERNAME = "用户-"+String.valueOf(System.currentTimeMillis()).substring(0,5);
+    //取后5位
+    String DEFAULT_USERNAME = "用户-"+String.valueOf(System.currentTimeMillis()).substring(10);
 
 
     /**
@@ -60,4 +61,9 @@ public interface UserConstant {
      * 盐值，混淆密码
      */
     String SALT = "xin";
+
+    /**
+     * 前三天时间毫秒
+     */
+    Long THREE_DAYS_MILLIS = 3 * 24 * 60 * 60 * 1000L;
 }

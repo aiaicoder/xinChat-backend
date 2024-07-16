@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xin.xinChat.mapper.ChatSessionUserMapper">
+
+    <resultMap id="BaseResultMap" type="com.xin.xinChat.model.entity.ChatSessionUser">
+            <id property="userId" column="userId" jdbcType="VARCHAR"/>
+            <id property="contactId" column="contactId" jdbcType="VARCHAR"/>
+            <result property="sessionId" column="sessionId" jdbcType="VARCHAR"/>
+            <result property="contactName" column="contactName" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        userId,contactId,sessionId,
+        contactName
+    </sql>
+</mapper>

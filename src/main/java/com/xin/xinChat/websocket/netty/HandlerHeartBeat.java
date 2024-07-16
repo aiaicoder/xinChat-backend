@@ -30,7 +30,6 @@ public class HandlerHeartBeat extends ChannelDuplexHandler {
                 String userId = attr.get();
                 ctx.close();
                 log.info("用户：{}心跳超时",userId);
-
             }
 
         }

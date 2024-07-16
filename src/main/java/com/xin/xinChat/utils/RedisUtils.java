@@ -23,25 +23,6 @@ public class RedisUtils {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    /**
-     * 获取心跳时间
-     *
-     * @param key
-     * @return
-     */
-    public Long getHeartBeatTime(String key) {
-        String time = stringRedisTemplate.opsForValue().get(REDIS_USER_HEART_BEAT_KEY + key);
-        return Objects.isNull(time) ? null : Long.parseLong(time);
-    }
-
-    /**
-     * 设置心跳时间
-     *
-     * @param key
-     */
-    public void setHeartBeatTime(String key) {
-        stringRedisTemplate.opsForValue().set(REDIS_USER_HEART_BEAT_KEY + key, Long.toString(System.currentTimeMillis()), REDIS_HEART_BEAT_TIME, TimeUnit.SECONDS);
-    }
 
 
     public String get(String key) {
@@ -66,6 +47,40 @@ public class RedisUtils {
         stringRedisTemplate.opsForValue().set(key, value);
     }
 
+
+    public void delete(String key) {
+        stringRedisTemplate.delete(key);
+    }
+
+    //下面是自定义操作
+    /**
+     * 获取心跳时间
+     *
+     * @param key
+     * @return
+     */
+    public Long getHeartBeatTime(String key) {
+        String time = stringRedisTemplate.opsForValue().get(REDIS_USER_HEART_BEAT_KEY + key);
+        return Objects.isNull(time) ? null : Long.parseLong(time);
+    }
+
+    /**
+     * 设置心跳时间
+     *
+     * @param key
+     */
+    public void setHeartBeatTime(String key) {
+        stringRedisTemplate.opsForValue().set(REDIS_USER_HEART_BEAT_KEY + key, Long.toString(System.currentTimeMillis()), REDIS_HEART_BEAT_TIME, TimeUnit.SECONDS);
+    }
+
+    public void removeHeartBeatTime(String userId) {
+        //移除心跳
+        stringRedisTemplate.delete(REDIS_USER_HEART_BEAT_KEY + userId);
+    }
+
+
+
+
     /**
      * 删除联系人列表
      *
@@ -83,12 +98,11 @@ public class RedisUtils {
         stringRedisTemplate.expire(REDIS_USER_CONTACT_KEY + userId, expireTime, timeUnit);
     }
 
-    public void delete(String key) {
-        stringRedisTemplate.delete(key);
-    }
+
 
     public List<String> getContactList(String userId) {
         List<String> userContact = stringRedisTemplate.opsForList().range(REDIS_USER_CONTACT_KEY + userId, 0, -1);
         return userContact == null ? ListUtil.empty() : userContact;
     }
+
 }

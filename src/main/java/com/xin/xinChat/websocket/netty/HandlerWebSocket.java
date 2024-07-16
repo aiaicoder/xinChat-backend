@@ -48,6 +48,7 @@ public class HandlerWebSocket extends SimpleChannelInboundHandler<TextWebSocketF
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        channelContextUtils.removeContext(ctx.channel());
         log.info("链接断开");
     }
 
@@ -58,7 +59,6 @@ public class HandlerWebSocket extends SimpleChannelInboundHandler<TextWebSocketF
         String userId = attr.get();
         //收到消息保存心跳
         redisUtils.setHeartBeatTime(userId);
-        channelContextUtils.sentToGroup("G10000", textWebSocketFrame.text());
         log.info("接收到消息userId：{}的消息：{}", userId, textWebSocketFrame.text());
     }
 
