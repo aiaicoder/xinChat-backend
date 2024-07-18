@@ -3,6 +3,9 @@ package com.xin.xinChat.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xin.xinChat.model.entity.ChatSessionUser;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
 * @author 15712
@@ -11,6 +14,8 @@ import com.xin.xinChat.model.entity.ChatSessionUser;
 * @Entity generator.domain.ChatSessionUser
 */
 public interface ChatSessionUserMapper extends BaseMapper<ChatSessionUser> {
+
+    List<ChatSessionUser> selectChatSessionContactList(@Param("userId") String userId);
 
 }
 

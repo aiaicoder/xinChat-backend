@@ -15,4 +15,24 @@
         userId,contactId,sessionId,
         contactName
     </sql>
+
+    <select id="selectChatSessionContactList" resultType="com.xin.xinChat.model.entity.ChatSessionUser">
+        SELECT
+            u.*,
+            c.lastMessage,
+            c.lastReceiveTime,
+            CASE
+                WHEN SUBSTRING(u.contactId, 1, 1) = 'G'
+                    THEN (SELECT COUNT(1) FROM userContact uc WHERE u.contactId = uc.contactId)
+                ELSE 0
+                END AS MemberCount
+        FROM
+            ChatSessionUser u
+                LEFT JOIN
+            ChatSession c ON c.sessionId = u.sessionId
+        WHERE
+            u.userId = #{userId}
+        ORDER BY
+            c.lastReceiveTime DESC
+    </select>
 </mapper>

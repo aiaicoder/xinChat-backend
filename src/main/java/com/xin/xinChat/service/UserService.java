@@ -91,4 +91,6 @@ public interface UserService extends IService<User> {
     boolean updateUser(User loginUser);
 
     void forceKickOut(String userId);
+
+    void addRobot(String userId);
 }

@@ -19,6 +19,8 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
+import static com.xin.xinChat.constant.RedisKeyConstant.REDIS_HEART_BEAT_TIME;
+
 /**
  * @author <a href="https://github.com/aiaicoder">  小新
  * @version 1.0
@@ -67,7 +69,7 @@ public class NettyWebSocketStarter {
                             pipeline.addLast(new HttpObjectAggregator(64 * 1024));
                             //心跳 long readerIdleTime, long writerIdleTime, long allIdleTime, TimeUnit unit
                             // readerIdleTime:读超时时间，writerIdleTime:写超时时间，allIdleTime:读写超时时间
-                            pipeline.addLast(new IdleStateHandler(60,0,0, TimeUnit.SECONDS));
+                            pipeline.addLast(new IdleStateHandler(REDIS_HEART_BEAT_TIME,0,0, TimeUnit.SECONDS));
                             //根据心跳的状态进行处理
                             pipeline.addLast(handlerHeartBeat);
                             //将http协议升级为ws协议
