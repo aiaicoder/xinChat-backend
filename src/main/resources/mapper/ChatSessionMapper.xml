@@ -13,4 +13,5 @@
     <sql id="Base_Column_List">
         sessionId,lastMessage,lastReceiveTime
     </sql>
+
 </mapper>

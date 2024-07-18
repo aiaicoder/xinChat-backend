@@ -91,10 +91,23 @@ public class RedisUtils {
     }
 
     /**
-     * 批量插入
+     * 批量插入联系人信息
      */
     public void addUserContactBatch(String userId, List<String> userContactList, Long expireTime, TimeUnit timeUnit) {
         stringRedisTemplate.opsForList().leftPushAll(REDIS_USER_CONTACT_KEY + userId, userContactList);
+        stringRedisTemplate.expire(REDIS_USER_CONTACT_KEY + userId, expireTime, timeUnit);
+    }
+
+    /**
+     * 加入联系人信息
+     * @param userId
+     */
+    public void addUserContact(String userId, String contactId,Long expireTime, TimeUnit timeUnit) {
+        List<String> contactList = getContactList(userId);
+        if (contactList.contains(contactId)) {
+            return;
+        }
+        stringRedisTemplate.opsForList().leftPush(REDIS_USER_CONTACT_KEY + userId, contactId);
         stringRedisTemplate.expire(REDIS_USER_CONTACT_KEY + userId, expireTime, timeUnit);
     }
 

@@ -28,12 +28,14 @@ public interface RedisKeyConstant {
     /**
      * 心跳时间
      */
-    Long REDIS_HEART_BEAT_TIME = 60L;
+    Long REDIS_HEART_BEAT_TIME = 360L;
 
     /**
      * 用户心跳
      */
     String REDIS_USER_HEART_BEAT_KEY = "user_heart_beat:";
+
+    String LIMIT_KEY_PREFIX = "xinChat:checkCode:limit:";
 
 
 

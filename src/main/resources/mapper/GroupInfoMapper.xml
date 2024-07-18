@@ -22,6 +22,7 @@
             groupAvatar,
         status,isDelete
     </sql>
+
     <select id="loadGroupInfo" resultType="com.xin.xinChat.model.entity.GroupInfo">
         SELECT g.*,
         (SELECT u.userName FROM user u WHERE g.groupOwnerId = u.id) AS ownerName,

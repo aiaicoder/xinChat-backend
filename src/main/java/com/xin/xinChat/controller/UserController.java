@@ -12,12 +12,16 @@ import com.xin.xinChat.constant.RedisKeyConstant;
 import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.exception.ThrowUtils;
+import com.xin.xinChat.manager.RedisLimiterManager;
+import com.xin.xinChat.model.dto.Message.MessageSendDTO;
 import com.xin.xinChat.model.dto.user.*;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.vo.LoginUserVO;
 import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.UserService;
+import com.xin.xinChat.utils.NetUtils;
 import com.xin.xinChat.utils.RedisUtils;
+import com.xin.xinChat.websocket.MessageHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -25,11 +29,13 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.xin.xinChat.constant.RedisKeyConstant.LIMIT_KEY_PREFIX;
 import static com.xin.xinChat.constant.UserConstant.SALT;
 
 
@@ -50,15 +56,25 @@ public class UserController {
     @Resource
     private RedisUtils redisUtils;
 
+    @Resource
+    private RedisLimiterManager redisLimiterManager;
+
+    @Resource
+    private MessageHandler messageHandler;
+
+
+
 
 
 
     @GetMapping("/checkCode")
-    public BaseResponse<Map<String, String>> checkCode() {
+    public BaseResponse<Map<String, String>> checkCode(HttpServletRequest request) {
+        String ipAddress = NetUtils.getIpAddress(request);
+        redisLimiterManager.doRateLimit(LIMIT_KEY_PREFIX + ipAddress);
         ArithmeticCaptcha captcha = new ArithmeticCaptcha(100, 43);
+        String checkCodeKey = UUID.fastUUID().toString();
         String code = captcha.text();
         log.info("验证码是：{}", code);
-        String checkCodeKey = UUID.fastUUID().toString();
         String checkCodeBase64 = captcha.toBase64();
         Map<String, String> result = new HashMap<>();
         result.put("checkCode", checkCodeBase64);
@@ -208,6 +224,16 @@ public class UserController {
         userVoPage.setRecords(userVO);
         return ResultUtils.success(userVoPage);
     }
+
+    @GetMapping("/get/test")
+    public BaseResponse<String> test() {
+        MessageSendDTO messageSendDTO = new MessageSendDTO();
+        messageSendDTO.setMessageContent("测试消息" + System.currentTimeMillis());
+        messageHandler.sendMessage(messageSendDTO);
+        return ResultUtils.success("测试成功");
+    }
+
+
 
 
 }

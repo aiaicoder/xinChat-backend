@@ -15,4 +15,36 @@
         userId,contactId,sessionId,
         contactName
     </sql>
+
+    <select id="selectChatSessionContactList" resultType="com.xin.xinChat.model.entity.ChatSessionUser">
+        SELECT
+            u.*,
+            c.lastMessage,
+            c.lastReceiveTime,
+            CASE
+                WHEN SUBSTRING(u.contactId, 1, 1) = 'G'
+                    THEN (SELECT COUNT(1) FROM userContact uc WHERE u.contactId = uc.contactId)
+                ELSE 0
+                END AS MemberCount
+        FROM
+            ChatSessionUser u
+                LEFT JOIN
+            ChatSession c ON c.sessionId = u.sessionId
+        WHERE
+            u.userId = #{userId}
+        ORDER BY
+            c.lastReceiveTime DESC
+    </select>
+
+    <!-- 批量插入或更新 -->
+    <insert id="insertOrUpdateBatch">
+        INSERT INTO ChatSessionUser (userId, contactId, sessionId,contactName)
+        VALUES
+        <foreach collection="chatSessionUserList" item="item" index="index" separator=",">
+            (#{item.userId},#{item.contactId}, #{item.sessionId},#{item.contactName})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        sessionId = VALUES(sessionId),
+        contactName = VALUES(contactName)
+    </insert>
 </mapper>

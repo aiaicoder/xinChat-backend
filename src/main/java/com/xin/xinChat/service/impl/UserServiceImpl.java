@@ -13,18 +13,18 @@ import com.xin.xinChat.constant.CommonConstant;
 import com.xin.xinChat.constant.RedisKeyConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.mapper.UserMapper;
+import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.dto.user.UserQueryRequest;
-import com.xin.xinChat.model.entity.User;
-import com.xin.xinChat.model.entity.UserBeauty;
-import com.xin.xinChat.model.entity.UserContact;
+import com.xin.xinChat.model.entity.*;
 import com.xin.xinChat.model.enums.*;
 import com.xin.xinChat.model.vo.LoginUserVO;
 import com.xin.xinChat.model.vo.UserVO;
-import com.xin.xinChat.service.UserContactService;
-import com.xin.xinChat.service.UserService;
+import com.xin.xinChat.service.*;
 import com.xin.xinChat.utils.RedisUtils;
 import com.xin.xinChat.utils.SqlUtils;
 import com.xin.xinChat.utils.StringUtil;
+import com.xin.xinChat.utils.SysSettingUtil;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.util.HtmlUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -68,6 +69,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     private AppConfig appConfig;
+
+    @Resource
+    private SysSettingUtil sysSettingUtil;
+
+    @Resource
+    private ChatSessionService chatSessionService;
+
+    @Resource
+    private ChatSessionUserService chatSessionUserService;
+
+
+    @Resource
+    private ChatMessageService chatMessageService;
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -139,7 +154,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 updataUserBeauty.setId(userBeauty.getId());
                 userBeautyService.updateById(updataUserBeauty);
             }
-            //TODO 创建机器人好友
+            //创建机器人好友
+            addRobot(userId);
             return user.getId();
         }
     }
@@ -330,8 +346,56 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public void forceKickOut(String userId) {
+        //踢人下线不会清除Token信息，而是将其打上特定标记，再次访问会提示：Token已被踢下线。
         StpUtil.kickout(userId);
         //todo 发送消息通知
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void addRobot(String userId) {
+        SysSettingDTO sysSetting = sysSettingUtil.getSysSetting();
+        String contactId = sysSetting.getRobotUid();
+        String contactName = sysSetting.getRobotNickName();
+        String sendMessage = sysSetting.getRobotWelcome();
+        //转换html标志，防止html注入
+        sendMessage = HtmlUtils.htmlEscape(sendMessage);
+        //添加机器人为好友
+        UserContact userContact = new UserContact();
+        userContact.setUserId(userId);
+        userContact.setContactId(contactId);
+        userContact.setContactName(contactName);
+        userContact.setContactType(UserContactEnum.USER.getType());
+        userContact.setStatus(UserContactStatusEnum.FRIEND.getStatus());
+        userContactService.save(userContact);
+        //增加会话信息
+        String sessionId = StringUtil.getSessionId(new String[]{userId, contactId});
+        ChatSession chatSession = new ChatSession();
+        chatSession.setSessionId(sessionId);
+        chatSession.setLastReceiveTime(System.currentTimeMillis());
+        chatSession.setLastMessage(sendMessage);
+        chatSessionService.save(chatSession);
+        //添加会话信息
+        ChatSessionUser chatSessionUser = new ChatSessionUser();
+        chatSessionUser.setSessionId(sessionId);
+        chatSessionUser.setUserId(userId);
+        chatSessionUser.setContactName(contactId);
+        chatSessionUser.setContactId(contactId);
+        chatSessionUserService.save(chatSessionUser);
+        //添加聊天消息
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setSessionId(sessionId);
+        chatMessage.setSendUserId(contactId);
+        chatMessage.setSendUserName(contactName);
+        chatMessage.setContactId(userId);
+        chatMessage.setMessageType(MessageTypeEnum.CHAT.getType());
+        chatMessage.setMessageContent(sendMessage);
+        chatMessage.setSendTime(System.currentTimeMillis());
+        chatMessage.setContactType(UserContactEnum.USER.getType());
+        chatMessage.setStatus(MessageStatusEnum.SENDED.getStatus());
+        chatMessageService.save(chatMessage);
+
+
     }
 
     /**

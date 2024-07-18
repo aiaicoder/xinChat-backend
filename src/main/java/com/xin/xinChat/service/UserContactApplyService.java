@@ -42,9 +42,8 @@ public interface UserContactApplyService extends IService<UserContactApply> {
      * @param receiveUserId
      * @param contactId
      * @param contactType 联系人类型，群聊或者联系人
-     * @param contactName
      */
-     void addContact(String applyUserId,String receiveUserId, String contactId,Integer contactType,String contactName);
+     void addContact(String applyUserId,String receiveUserId, String contactId,Integer contactType,String applyInfo);
 
 
 

@@ -1,19 +1,40 @@
 package com.xin.xinChat.config.redis;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 /**
- * 更换redis序列化方式
+ * redis配置
+ * @author 15712
  */
 @Slf4j
 @Configuration
 public class RedisConfig {
+    @Value("${spring.redis.host}")
+    private String host;
+
+    @Value("${spring.redis.port}")
+    private String port;
+
+    @Value("${spring.redis.password}")
+    private String password;
+
+    @Bean
+    public RedissonClient redisClient() {
+        Config redissonConfig = new Config();
+        String address = String.format("redis://%s:%s", host, port);
+        System.out.println(address);
+        redissonConfig.useSingleServer().setAddress(address).setDatabase(2);
+        return Redisson.create(redissonConfig);
+    }
 
 
     @Bean

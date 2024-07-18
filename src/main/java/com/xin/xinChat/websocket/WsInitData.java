@@ -16,7 +16,7 @@ public class WsInitData {
     /**
      * 会话列表
      */
-    private List<ChatSessionUser> chatSessionUserList;
+    private List<ChatSessionUser> chatSessionList;
 
     /**
      * 消息列表
@@ -26,7 +26,7 @@ public class WsInitData {
     /**
      * 申请数量
      */
-    private Integer applyCount;
+    private long applyCount;
 
 
 

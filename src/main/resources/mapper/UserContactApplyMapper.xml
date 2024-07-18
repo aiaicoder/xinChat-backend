@@ -34,4 +34,7 @@
         where a.receiveUserId = #{receiveUserId}
         ORDER BY a.lastApplyTime DESC
     </select>
+
+
+
 </mapper>
