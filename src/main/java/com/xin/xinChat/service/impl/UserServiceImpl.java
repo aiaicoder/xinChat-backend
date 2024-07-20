@@ -212,7 +212,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         QueryWrapper<UserContact> userContactQueryWrapper = new QueryWrapper<>();
         userContactQueryWrapper.eq("userId", user.getId());
         userContactQueryWrapper.eq("status", UserContactStatusEnum.FRIEND.getStatus());
-        List<UserContact> userContactList = userContactService.list(userContactQueryWrapper);
+         List<UserContact> userContactList = userContactService.list(userContactQueryWrapper);
         List<String> contactList = userContactList.stream().map(UserContact::getContactId).collect(Collectors.toList());
         redisUtils.delUserContact(user.getId());
         if (!contactList.isEmpty()){
