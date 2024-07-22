@@ -11,6 +11,7 @@ import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.mapper.ChatSessionUserMapper;
 import com.xin.xinChat.mapper.UserContactApplyMapper;
 import com.xin.xinChat.model.dto.Message.MessageSendDTO;
+import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.entity.*;
 import com.xin.xinChat.model.enums.*;
 import com.xin.xinChat.model.vo.UserSearchVo;
@@ -22,6 +23,7 @@ import com.xin.xinChat.websocket.ChannelContextUtils;
 import com.xin.xinChat.websocket.MessageHandler;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +46,7 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
     private UserService userService;
 
     @Resource
+    @Lazy
     private GroupInfoService groupInfoService;
 
     @Resource
@@ -66,6 +69,13 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
 
     @Resource
     private ChatMessageService chatMessageService;
+
+    @Resource
+    @Lazy
+    private ChannelContextUtils channelContextUtils;
+
+    @Resource
+    private SysSettingUtil sysSettingUtil;
 
 
     @Override
@@ -151,13 +161,14 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
             receiveId = groupInfo.getGroupOwnerId();
             joinType = groupInfo.getJoinType();
         } else {
-            //对方信息
+            //对方信息,如果对方的添加好友是可以直接通过就直接进行添加
             User user = userService.getById(contactId);
             if (user == null) {
                 throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
             }
             joinType = user.getJoinType();
             if (JoinTypeEnum.JOIN.getType().equals(joinType)) {
+
                 //todo 添加联系人
                 return joinType;
             }
@@ -166,6 +177,7 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
         QueryWrapper<UserContactApply> userContactApplyQueryWrapper = new QueryWrapper<>();
         userContactApplyQueryWrapper.eq("applyUserId", userApplyId);
         userContactApplyQueryWrapper.eq("receiveUserId", receiveId);
+        userContactApplyQueryWrapper.eq("contactId", contactId);
         UserContactApply contactApply = getOne(userContactApplyQueryWrapper);
         if (contactApply == null) {
             UserContactApply userContactApply = new UserContactApply();
@@ -196,7 +208,6 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
             messageSendDTO.setContactId(receiveId);
             messageSendDTO.setMessageContent(applyInfo);
             messageHandler.sendMessage(messageSendDTO);
-
         }
         return joinType;
     }
@@ -232,11 +243,15 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "处理失败");
         }
         if (status.equals(UserContactApplyStatusEnum.AGREE.getStatus())) {
-            addContact(contactApply.getApplyUserId(),
-                    contactApply.getReceiveUserId(),
-                    contactApply.getContactId(),
-                    contactApply.getContactType(),
-                    contactApply.getApplyInfo());
+            try{
+                addContact(contactApply.getApplyUserId(),
+                        contactApply.getReceiveUserId(),
+                        contactApply.getContactId(),
+                        contactApply.getContactType(),
+                        contactApply.getApplyInfo());
+            }catch (Exception e){
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "添加失败");
+            }
             return true;
         }
         if (UserContactApplyStatusEnum.BLACKLIST == typeEnum) {
@@ -280,8 +295,8 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
             queryWrapper.eq("status", UserContactStatusEnum.FRIEND.getStatus());
             long count = userContactService.count(queryWrapper);
             //获取后台默认系统设置
-            SysSettingUtil sysSettingUtil = new SysSettingUtil();
-            if (count >= sysSettingUtil.getSysSetting().getMaxGroupCount()) {
+            SysSettingDTO sysSetting = sysSettingUtil.getSysSetting();
+            if (count >= sysSetting.getMaxGroupMemberCount()) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "群已满");
             }
         }
@@ -290,7 +305,7 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
         //添加人添加好友
         UserContact userContact = new UserContact();
         userContact.setUserId(applyUserId);
-        userContact.setContactId(receiveUserId);
+        userContact.setContactId(contactId);
         userContact.setContactType(contactType);
         userContact.setStatus(UserContactStatusEnum.FRIEND.getStatus());
         userContactList.add(userContact);
@@ -368,7 +383,53 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
             messageSendDTO.setMessageType(MessageTypeEnum.ADD_FRIEND_SELF.getType());
             //接收人给申请人发送消息，本质就是自己给自己发
             messageHandler.sendMessage(messageSendDTO);
-
+        }else {
+            //加入群组
+            GroupInfo groupInfo = groupInfoService.getById(contactId);
+            ChatSessionUser chatSessionUser = new ChatSessionUser();
+            chatSessionUser.setSessionId(sessionId);
+            chatSessionUser.setUserId(applyUserId);
+            chatSessionUser.setContactId(contactId);
+            chatSessionUser.setContactName(groupInfo.getGroupName());
+            chatSessionUserMapper.insert(chatSessionUser);
+            User applyUser = userService.getById(applyUserId);
+            String sendMessage = String.format(MessageTypeEnum.ADD_GROUP.getInitMessage(), applyUser.getUserName());
+            //创建会话
+            ChatSession chatSession = new ChatSession();
+            chatSession.setSessionId(sessionId);
+            chatSession.setLastMessage(sendMessage);
+            chatSession.setLastReceiveTime(System.currentTimeMillis());
+            if (chatSessionService.getById(sessionId) != null){
+                chatSessionService.updateById(chatSession);
+            }else {
+                chatSessionService.save(chatSession);
+            }
+            //保存消息
+            ChatMessage chatMessage = new ChatMessage();
+            chatMessage.setSessionId(sessionId);
+            chatMessage.setMessageType(MessageTypeEnum.ADD_GROUP.getType());
+            chatMessage.setMessageContent(sendMessage);
+            chatMessage.setSendTime(System.currentTimeMillis());
+            chatMessage.setContactId(contactId);
+            chatMessage.setContactType(UserContactEnum.GROUP.getType());
+            chatMessage.setStatus(MessageStatusEnum.SENDED.getStatus());
+            chatMessageService.save(chatMessage);
+            //添加进入联系人列表缓存
+            redisUtils.addUserContact(applyUserId,contactId,appConfig.tokenTimeout,TimeUnit.SECONDS);
+            //将用户添加到群聊通道
+            channelContextUtils.addGroupContext(groupInfo.getGroupId(),applyUserId);
+            //发送消息
+            MessageSendDTO messageSendDTO = BeanUtil.copyProperties(chatMessage, MessageSendDTO.class);
+            messageSendDTO.setContactId(contactId);
+            //查看群人数
+            QueryWrapper<UserContact> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("contactId",contactId);
+            queryWrapper.eq("status",UserContactStatusEnum.FRIEND.getStatus());
+            long count = userContactService.count(queryWrapper);
+            //设置群人数
+            messageSendDTO.setMemberCount(count);
+            messageSendDTO.setContactName(groupInfo.getGroupName());
+            messageHandler.sendMessage(messageSendDTO);
         }
     }
 }

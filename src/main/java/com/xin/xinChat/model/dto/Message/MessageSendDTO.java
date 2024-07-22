@@ -41,7 +41,8 @@ public class MessageSendDTO<T> implements Serializable {
     private T extendData;
     //消息状态 0：发送中 1：已发送 对于文件是异步上传用状态处理
     private Integer status;
-
+    //成员数量
+    private long memberCount;
     //文件信息
     private Long fileSize;
     private String fileName;

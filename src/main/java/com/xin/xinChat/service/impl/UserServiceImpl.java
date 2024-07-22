@@ -11,6 +11,7 @@ import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.config.AppConfig;
 import com.xin.xinChat.constant.CommonConstant;
 import com.xin.xinChat.constant.RedisKeyConstant;
+import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.mapper.UserMapper;
 import com.xin.xinChat.model.dto.system.SysSettingDTO;
@@ -333,10 +334,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User dbUser = getById(userId);
         boolean b = updateById(loginUser);
         String contactName = null;
-        if (dbUser.getUserName().equals(loginUser.getUserName())) {
+        if (!dbUser.getUserName().equals(loginUser.getUserName())) {
             contactName = loginUser.getUserName();
         }
-        //todo 更新会话信息中的昵称信息
+        //更新保存的用户登录态
+        StpUtil.getSession().set(UserConstant.USER_LOGIN_STATE,loginUser);
+        //更新会话信息中的昵称信息
+        chatSessionUserService.removeRedundancyInfo(contactName, userId);
         return b;
     }
 

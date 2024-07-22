@@ -65,8 +65,7 @@ public class ChannelContextUtils {
 
     //channel的本地缓存
     private static final Cache<String, Channel> USER_CHANNEL_CACHE = Caffeine.newBuilder().
-            maximumSize(10000).
-            expireAfterWrite(Duration.ofSeconds(REDIS_HEART_BEAT_TIME)).build();
+            maximumSize(10000).build();
     private static final Cache<String, ChannelGroup> GROUP_CHANNEL_CACHE = Caffeine.newBuilder().
             maximumSize(10000).
             expireAfterWrite(Duration.ofSeconds(REDIS_HEART_BEAT_TIME)).build();
@@ -90,7 +89,7 @@ public class ChannelContextUtils {
         //遍历id，判断是群id还是用户id，如果是群id，则加入群组‘；如果是用户id，则加入用户id对应的群组
         contactList.forEach(contactId -> {
             if (contactId.startsWith(UserContactEnum.GROUP.getPrefix())) {
-                addGroupContext(contactId, channel);
+                addGroupContext(contactId, userId);
             }
         });
         //将chanel放到缓存中管理起来
@@ -245,10 +244,11 @@ public class ChannelContextUtils {
     /**
      * 添加群聊组
      * @param groupId
-     * @param channel
+     * @param userId
      */
-    public void addGroupContext(String groupId, Channel channel) {
+    public void addGroupContext(String groupId, String userId) {
         ChannelGroup groupChannel = GROUP_CHANNEL_CACHE.getIfPresent(groupId);
+        Channel channel = USER_CHANNEL_CACHE.getIfPresent(userId);
         if (groupChannel == null) {
             //使用GlobalEventExecutor.INSTANCE意味着这个ChannelGroup的操作将在全局的事件执行器上执行
             groupChannel = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);

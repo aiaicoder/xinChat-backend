@@ -21,6 +21,7 @@ public class SysSettingDTO implements Serializable {
      * 最大群聊数量
      */
     private Integer maxGroupCount =5;
+
     /**
      * 最大群聊人数
      */

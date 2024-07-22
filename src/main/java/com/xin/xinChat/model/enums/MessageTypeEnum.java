@@ -16,13 +16,12 @@ public enum MessageTypeEnum {
     FORCE_OFF_LINE(7,"","强制下线"),
     DISSOLUTION_GROUP(8,"群聊已解散","解散群聊"),
     ADD_GROUP(9,"%s加入群组","加入群组"),
-    GROUP_NAME_UPDATE(10,"","更新群聊"),
+    CONTACT_NAME_UPDATE(10,"","更新昵称"),
     LEAVE_GROUP(11,"%s退出群组","退出群聊"),
     REMOVE_GROUP(12,"%s被管理员移出了群聊","被管理员移除群聊"),
     ADD_FRIEND_SELF(13,"","添加好友打招呼消息");
     private Integer type;
     private String initMessage;
-
     private String desc;
 
     MessageTypeEnum(Integer type, String initMessage, String desc) {

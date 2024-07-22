@@ -5,23 +5,25 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xin.xinChat.common.ErrorCode;
+import com.xin.xinChat.config.AppConfig;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.mapper.GroupInfoMapper;
+import com.xin.xinChat.model.dto.Message.MessageSendDTO;
 import com.xin.xinChat.model.dto.system.SysSettingDTO;
-import com.xin.xinChat.model.entity.GroupInfo;
-import com.xin.xinChat.model.entity.UserContact;
-import com.xin.xinChat.model.enums.GroupInfoEnum;
-import com.xin.xinChat.model.enums.UserContactEnum;
-import com.xin.xinChat.model.enums.UserContactStatusEnum;
-import com.xin.xinChat.service.GroupInfoService;
-import com.xin.xinChat.service.UserContactService;
+import com.xin.xinChat.model.entity.*;
+import com.xin.xinChat.model.enums.*;
+import com.xin.xinChat.service.*;
+import com.xin.xinChat.utils.RedisUtils;
 import com.xin.xinChat.utils.StringUtil;
 import com.xin.xinChat.utils.SysSettingUtil;
+import com.xin.xinChat.websocket.ChannelContextUtils;
+import com.xin.xinChat.websocket.MessageHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author 15712
@@ -35,9 +37,29 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
     @Resource
     private UserContactService userContactService;
 
-
     @Resource
     private SysSettingUtil sysSettingUtil;
+
+    @Resource
+    private ChatSessionService chatSessionService;
+
+    @Resource
+    private ChatSessionUserService chatSessionUserService;
+
+    @Resource
+    private ChannelContextUtils channelContextUtils;
+
+    @Resource
+    private AppConfig appConfig;
+
+    @Resource
+    private RedisUtils redisUtils;
+
+    @Resource
+    private ChatMessageService chatMessageService;
+
+    @Resource
+    private MessageHandler messageHandler;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -70,12 +92,48 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
             userContact.setContactType(UserContactEnum.GROUP.getType());
             userContact.setUserId(groupOwnerId);
             boolean savaUserContact = userContactService.save(userContact);
-            //todo 创建会话
-            //todo 发送消息
+            //创建会话
+            String sessionId = StringUtil.getSessionIdGroup(groupOwnerId);
+            ChatSession chatSession = new ChatSession();
+            chatSession.setSessionId(sessionId);
+            chatSession.setLastMessage(MessageTypeEnum.GROUP_CREATE.getInitMessage());
+            chatSession.setLastReceiveTime(System.currentTimeMillis());
+            if (chatSessionService.getById(sessionId) == null){
+                chatSessionService.save(chatSession);
+            }else {
+                chatSessionService.updateById(chatSession);
+            }
+            ChatSessionUser chatSessionUser = new ChatSessionUser();
+            chatSessionUser.setSessionId(sessionId);
+            chatSessionUser.setUserId(groupInfo.getGroupOwnerId());
+            chatSessionUser.setContactName(groupInfo.getGroupName());
+            chatSessionUser.setContactId(groupInfo.getGroupId());
+            chatSessionUserService.save(chatSessionUser);
+            //创建消息
+            ChatMessage chatMessage = new ChatMessage();
+            chatMessage.setSessionId(sessionId);
+            chatMessage.setMessageType(MessageTypeEnum.GROUP_CREATE.getType());
+            chatMessage.setMessageContent(MessageTypeEnum.GROUP_CREATE.getInitMessage());
+            chatMessage.setContactId(groupInfo.getGroupId());
+            chatMessage.setContactType(UserContactEnum.GROUP.getType());
+            chatMessage.setSendTime(System.currentTimeMillis());
+            chatMessage.setStatus(MessageStatusEnum.SENDED.getStatus());
+            chatMessageService.save(chatMessage);
+            //将群组添加到联系人缓存
+            redisUtils.addUserContact(groupInfo.getGroupOwnerId(), groupInfo.getGroupId(), appConfig.tokenTimeout, TimeUnit.SECONDS);
+            //添加群聊天，将联系人通道添加到群组通道
+            channelContextUtils.addGroupContext(groupInfo.getGroupId(),groupInfo.getGroupOwnerId());
+            chatSessionUser.setLastMessage(MessageTypeEnum.GROUP_CREATE.getInitMessage());
+            chatSessionUser.setLastReceiveTime(System.currentTimeMillis());
+            chatSessionUser.setMemberCount(1);
+            //准备发送消息
+            MessageSendDTO messageSendDTO = BeanUtil.copyProperties(chatMessage, MessageSendDTO.class);
+            messageSendDTO.setExtendData(chatSessionUser);
+            messageSendDTO.setLastMessage(chatSessionUser.getLastMessage());
+            messageHandler.sendMessage(messageSendDTO);
             if (save && savaUserContact) {
                 return groupIdStr;
             }
-
         }else {
             GroupInfo oldGroupInfo = this.getById(groupId);
             if (!oldGroupInfo.getGroupOwnerId().equals(groupId)){
@@ -84,8 +142,15 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
             GroupInfo newGroupInfo = new GroupInfo();
             BeanUtil.copyProperties(groupInfo,newGroupInfo);
             boolean b = this.updateById(newGroupInfo);
-            //todo 更新相关表冗余信息
-            //todo 修改群名称发送ws消息
+            //更新相关表冗余信息
+            String updateContactName = null;
+            if (!oldGroupInfo.getGroupName().equals(groupInfo.getGroupName())){
+                updateContactName = groupInfo.getGroupName();
+            }
+            if (updateContactName == null){
+                return "-1";
+            }
+            chatSessionUserService.removeRedundancyInfo(updateContactName,groupId);
             if (b){
                 return groupId;
             }

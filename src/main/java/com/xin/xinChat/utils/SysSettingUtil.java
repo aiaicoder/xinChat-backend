@@ -17,7 +17,7 @@ import javax.annotation.Resource;
 @Component
 public class SysSettingUtil {
     @Resource
-    private  RedisUtils redisUtils;
+    private RedisUtils redisUtils;
 
 
     public SysSettingDTO getSysSetting() {

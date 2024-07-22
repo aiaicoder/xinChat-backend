@@ -42,10 +42,10 @@ public class StringUtil {
 
     /**
      * 获取群组的会话id
-     * @param userId
+     * @param groupId
      * @return
      */
-    public static String getSessionIdGroup(String userId){
-        return DigestUtils.md5DigestAsHex(userId.getBytes());
+    public static String getSessionIdGroup(String groupId){
+        return DigestUtils.md5DigestAsHex(groupId.getBytes());
     }
 }
