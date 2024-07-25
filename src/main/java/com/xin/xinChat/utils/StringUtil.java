@@ -1,12 +1,7 @@
 package com.xin.xinChat.utils;
 
-import cn.hutool.crypto.digest.DigestUtil;
-import cn.hutool.crypto.digest.Digester;
-import cn.hutool.crypto.digest.MD5;
-import com.qcloud.cos.utils.Md5Utils;
 import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.model.enums.UserContactEnum;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.DigestUtils;
@@ -42,10 +37,23 @@ public class StringUtil {
 
     /**
      * 获取群组的会话id
+     *
      * @param groupId
      * @return
      */
-    public static String getSessionIdGroup(String groupId){
+    public static String getSessionIdGroup(String groupId) {
         return DigestUtils.md5DigestAsHex(groupId.getBytes());
+    }
+
+    public static String htmlEscape(String content) {
+        if (StringUtils.isEmpty(content)) {
+            return content;
+        }
+        content = content.replaceAll("&", "&amp;");
+        content = content.replaceAll("<", "&lt;");
+        content = content.replaceAll(">", "&gt;");
+        content = content.replaceAll("\r\n", "<br>");
+        content = content.replaceAll("\n", "<br>");
+        return content.replaceAll(" ", "&nbsp;");
     }
 }

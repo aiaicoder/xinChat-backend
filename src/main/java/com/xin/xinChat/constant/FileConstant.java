@@ -13,4 +13,15 @@ public interface FileConstant {
      * todo 需替换配置
      */
     String COS_HOST = "https://yupi.icu";
+
+
+    String[] IMAGE_FILE_EXTENSION = {"png", "jpg", "jpeg", "bmp", "webp", "gif","svg",};
+
+    String[] VIDEO_FILE_EXTENSION = {"mp4", "avi", "wmv", "mov", "flv", "mkv", "rmvb"};
+
+
+    long FILE_SIZE = 1024 * 1024L;
+
 }
+
+

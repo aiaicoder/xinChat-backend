@@ -86,11 +86,9 @@ public class NettyWebSocketStarter {
             log.info("netty服务启动成功，端口：{}",wsPort);
             channelFuture.channel().closeFuture().sync();
         }catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             log.error("启动失败");
             e.printStackTrace();
-        }finally {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
         }
     }
 }

@@ -16,7 +16,7 @@ public class MessageSendDTO<T> implements Serializable {
     private static final long serialVersionUID = -8385732700714377982L;
 
     //消息ID
-    private String messageId;
+    private Long messageId;
     //会话ID
     private String sessionId;
     //发送人Id

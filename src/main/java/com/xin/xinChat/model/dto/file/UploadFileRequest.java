@@ -17,5 +17,10 @@ public class UploadFileRequest implements Serializable {
      */
     private String biz;
 
+    /**
+     * 消息id
+     */
+    private Long messageId;
+
     private static final long serialVersionUID = 1L;
 }

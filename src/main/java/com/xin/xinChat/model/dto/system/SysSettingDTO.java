@@ -1,11 +1,9 @@
 package com.xin.xinChat.model.dto.system;
 
 import com.xin.xinChat.constant.UserConstant;
-import com.xin.xinChat.model.enums.UserContactEnum;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.rmi.server.UID;
 
 /**
  * @author <a href="https://github.com/aiaicoder">  小新
@@ -20,24 +18,29 @@ public class SysSettingDTO implements Serializable {
     /**
      * 最大群聊数量
      */
-    private Integer maxGroupCount =5;
+    private Integer maxGroupCount = 5;
 
     /**
      * 最大群聊人数
      */
-    private Integer maxGroupMemberCount =500;
+    private Integer maxGroupMemberCount = 500;
     /**
      * 最大图片大小
      */
-    private Integer maxImageSize =2;
+    private Integer maxImageSize = 12;
+    /**
+     * 用户图片大小
+     */
+    private Integer maxUserAvatarSize = 5;
+
     /**
      * 最大视频大小
      */
-    private Integer maxVideoSize =5;
+    private Integer maxVideoSize = 20;
     /**
      * 最大文件大小
      */
-    private Integer maxFileSize=5;
+    private Integer maxFileSize = 50;
     /**
      * 机器人uid
      */
