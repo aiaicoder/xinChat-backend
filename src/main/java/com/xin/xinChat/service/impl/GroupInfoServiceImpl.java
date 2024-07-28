@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -60,6 +61,9 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
 
     @Resource
     private MessageHandler messageHandler;
+
+    @Resource
+    private UserContactApplyService userContactApplyService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -181,8 +185,60 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
         updateWrapper.eq("contactType",UserContactEnum.GROUP.getType());
         updateWrapper.set("status",UserContactStatusEnum.DEL.getStatus());
         userContactService.update(updateWrapper);
-        //todo 移除相关 群聊的联系人缓存
-        //todo 发消息 1.更新会话消息，2.记录群消息，3.发送群解散通知
+        //移除相关 群聊的联系人缓存
+        QueryWrapper<UserContact> userContactQueryWrapper = new QueryWrapper<>();
+        userContactQueryWrapper.eq("contactId",groupId);
+        userContactQueryWrapper.eq("contactType",UserContactEnum.GROUP.getType());
+        List<UserContact> userContactList = userContactService.list(userContactQueryWrapper);
+        //删除缓存中的联系人信息
+        userContactList.forEach(userContact -> {
+            redisUtils.delUserContactInfo(userContact.getUserId(),userContact.getContactId());
+        });
+        //发消息 1.更新会话消息，2.记录群消息，3.发送群解散通知
+        //当前时间
+        long currentTimeMillis = System.currentTimeMillis();
+        //更新会话信息
+        ChatSession chatSession = new ChatSession();
+        String sessionIdGroup = StringUtil.getSessionIdGroup(groupId);
+        String messageContent = MessageTypeEnum.DISSOLUTION_GROUP.getInitMessage();
+        chatSession.setSessionId(sessionIdGroup);
+        chatSession.setLastMessage(messageContent);
+        chatSession.setLastReceiveTime(currentTimeMillis);
+        chatSessionService.updateById(chatSession);
+        //消息列表
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setSessionId(sessionIdGroup);
+        chatMessage.setMessageType(MessageTypeEnum.DISSOLUTION_GROUP.getType());
+        chatMessage.setMessageContent(messageContent);
+        chatMessage.setContactId(groupId);
+        chatMessage.setContactType(UserContactEnum.GROUP.getType());
+        chatMessage.setSendTime(currentTimeMillis);
+        chatMessage.setStatus(MessageStatusEnum.SENDED.getStatus());
+        //插入消息
+        chatMessageService.save(chatMessage);
+        MessageSendDTO messageSendDTO = BeanUtil.copyProperties(chatMessage, MessageSendDTO.class);
+        //发送通知
+        messageHandler.sendMessage(messageSendDTO);
+    }
+
+    @Override
+    public void addOrRemoveGroupMember(User loginUser, String groupId, String selectContactIds, Integer opType) {
+        GroupInfo groupInfo = getById(groupId);
+        if (groupInfo == null || groupInfo.getStatus().equals(GroupInfoEnum.DISMISSAL.getStatus())){
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        if (!groupInfo.getGroupOwnerId().equals(loginUser.getId())){
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        String[] contactIdList= selectContactIds.split(",");
+        for (String contactId : contactIdList) {
+            if (GroupOpEnum.REMOVE.getType().equals(opType)){
+
+            }else {
+                userContactApplyService.addContact(contactId,null,groupId,UserContactEnum.GROUP.getType(),null  );
+            }
+        }
+
     }
 }
 

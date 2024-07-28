@@ -2,6 +2,7 @@ package com.xin.xinChat.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.xin.xinChat.model.entity.GroupInfo;
+import com.xin.xinChat.model.entity.User;
 
 /**
 * @author 15712
@@ -13,4 +14,6 @@ public interface GroupInfoService extends IService<GroupInfo> {
     String saveGroup(GroupInfo groupInfo);
 
     void dismissGroup(String groupOwnerId, String groupId);
+
+    void addOrRemoveGroupMember(User loginUser, String groupId, String selectContactId, Integer opType);
 }

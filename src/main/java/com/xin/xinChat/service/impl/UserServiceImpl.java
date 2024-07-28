@@ -25,6 +25,7 @@ import com.xin.xinChat.utils.RedisUtils;
 import com.xin.xinChat.utils.SqlUtils;
 import com.xin.xinChat.utils.StringUtil;
 import com.xin.xinChat.utils.SysSettingUtil;
+import com.xin.xinChat.websocket.ChannelContextUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -82,7 +83,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
     @Resource
+    @Lazy
     private ChatMessageService chatMessageService;
+
+    @Resource
+    @Lazy
+    private ChannelContextUtils channelContextUtils;
 
 
     @Override
@@ -266,8 +272,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (StpUtil.getLoginIdDefaultNull() == null) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
         }
+        User loginUser = getLoginUser();
         StpUtil.logout();
-        //todo 关闭ws连接
+        //关闭ws连接
+        channelContextUtils.closeContext(loginUser.getId());
         return true;
     }
 

@@ -17,6 +17,7 @@
         <result property="fileSize" column="fileSize" jdbcType="BIGINT"/>
         <result property="fileName" column="fileName" jdbcType="VARCHAR"/>
         <result property="fileType" column="fileType" jdbcType="TINYINT"/>
+        <result property="filePath" column="filePath" jdbcType="VARCHAR"/>
         <result property="status" column="status" jdbcType="TINYINT"/>
     </resultMap>
 
@@ -25,7 +26,7 @@
         ,sessionId,messageType,
         messageContent,sendUserId,sendUserName,
         sendTime,contactId,contactType,
-        fileSize,fileName,fileType,
+        fileSize,fileName,fileType,filePath
         status
     </sql>
 </mapper>

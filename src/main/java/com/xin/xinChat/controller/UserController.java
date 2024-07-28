@@ -21,6 +21,7 @@ import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.UserService;
 import com.xin.xinChat.utils.NetUtils;
 import com.xin.xinChat.utils.RedisUtils;
+import com.xin.xinChat.websocket.ChannelContextUtils;
 import com.xin.xinChat.websocket.MessageHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -61,6 +62,9 @@ public class UserController {
 
     @Resource
     private MessageHandler messageHandler;
+
+    @Resource
+    private ChannelContextUtils channelContextUtils;
 
 
 
@@ -162,6 +166,8 @@ public class UserController {
         userService.updateById(loginUser);
         //修改密码后重新登录
         userService.userLogout();
+        //关闭ws连接
+        channelContextUtils.closeContext(loginUser.getId());
         return ResultUtils.success("修改成功");
     }
 

@@ -1,6 +1,10 @@
 package com.xin.xinChat.controller;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.hutool.core.io.FileUtil;
+import com.qcloud.cos.model.COSObject;
+import com.qcloud.cos.model.COSObjectInputStream;
+import com.qcloud.cos.utils.IOUtils;
 import com.xin.xinChat.common.BaseResponse;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.common.ResultUtils;
@@ -25,9 +29,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -44,10 +49,6 @@ import static com.xin.xinChat.constant.FileConstant.FILE_SIZE;
 public class ChatController {
     @Resource
     private ChatMessageService chatMessageService;
-
-    @Resource
-    private ChatSessionUserService chatSessionUserService;
-
 
     @Resource
     private UserService userService;
@@ -122,6 +123,7 @@ public class ChatController {
         if (chatMessage == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
+        //判断是否是当前用户发送的
         if (!chatMessage.getSendUserId().equals(loginUser.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
@@ -137,7 +139,7 @@ public class ChatController {
             cosManager.putObject(filepath, file);
             // 返回可访问地址
             String fileUrl = FileConstant.COS_HOST + filepath;
-            chatMessageService.saveFile(chatMessage, loginUser.getId(), messageId, fileUrl);
+            chatMessageService.saveFile(chatMessage, messageId, fileUrl, filepath);
             return ResultUtils.success(fileUrl);
         } catch (Exception e) {
             log.error("file upload error, filepath = " + filepath, e);
@@ -152,6 +154,46 @@ public class ChatController {
             }
         }
     }
+
+
+    /**
+     * 根据 id 下载
+     *
+     * @return
+     */
+    @GetMapping("/download")
+    @SaCheckLogin
+    public void downloadFile(Long messageId, HttpServletResponse response) throws IOException {
+        ChatMessage chatMessage = chatMessageService.getById(messageId);
+        if (chatMessage == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        User loginUser = userService.getLoginUser();
+        String filePath = chatMessage.getFilePath();
+        String fileName = chatMessage.getFileName();
+        COSObjectInputStream cosObjectInput = null;
+        try {
+            chatMessageService.checkFileAuth(loginUser, messageId);
+            COSObject cosObject = cosManager.getObject(filePath);
+            cosObjectInput = cosObject.getObjectContent();
+            // 处理下载到的流
+            byte[] bytes = IOUtils.toByteArray(cosObjectInput);
+            // 设置响应头
+            response.setContentType("application/octet-stream;charset=UTF-8");
+            response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+            // 写入响应
+            response.getOutputStream().write(bytes);
+            response.getOutputStream().flush();
+        } catch (Exception e) {
+            log.error("file download error, filepath = " + messageId, e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "下载失败");
+        } finally {
+            if (cosObjectInput != null) {
+                cosObjectInput.close();
+            }
+        }
+    }
+
 
     /**
      * 校验文件
@@ -192,7 +234,7 @@ public class ChatController {
             }
         } else {
             if (fileSize > maxFileSize * FILE_SIZE) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件大小" + maxVideoSize + "M");
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件大小" + maxFileSize + "M");
             }
         }
     }

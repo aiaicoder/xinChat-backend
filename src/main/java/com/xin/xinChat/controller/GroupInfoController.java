@@ -6,6 +6,7 @@ import com.xin.xinChat.common.BaseResponse;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.common.ResultUtils;
 import com.xin.xinChat.exception.BusinessException;
+import com.xin.xinChat.model.dto.group.AddOrRemoveGroupMemberRequest;
 import com.xin.xinChat.model.dto.group.GroupInfoQueryRequest;
 import com.xin.xinChat.model.dto.group.SaveGroupRequest;
 import com.xin.xinChat.model.entity.GroupInfo;
@@ -129,7 +130,23 @@ public class GroupInfoController {
         return ResultUtils.success(groupInfoVo);
     }
 
-    @NotNull
+    @PostMapping("/addOrRemoveGroupMember")
+    @SaCheckLogin
+    public BaseResponse<String> addOrRemoveGroupMember(@RequestBody AddOrRemoveGroupMemberRequest addOrRemoveGroupMemberRequest) {
+        User loginUser = userService.getLoginUser();
+        if (addOrRemoveGroupMemberRequest == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "参数为空");
+        }
+        String groupId = addOrRemoveGroupMemberRequest.getGroupId();
+        String selectContactIds = addOrRemoveGroupMemberRequest.getSelectContactIds();
+        Integer opType = addOrRemoveGroupMemberRequest.getOpType();
+        groupinfoService.addOrRemoveGroupMember(loginUser, groupId, selectContactIds, opType);
+        return null;
+    }
+
+
+
+
     private GroupInfo getDetailGroupInfo(User loginUser, String groupId) {
         QueryWrapper<UserContact> groupInfoQueryWrapper = new QueryWrapper<>();
         groupInfoQueryWrapper.eq("userId", loginUser.getId());

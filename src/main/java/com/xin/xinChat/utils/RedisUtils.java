@@ -1,10 +1,6 @@
 package com.xin.xinChat.utils;
 
 import cn.hutool.core.collection.ListUtil;
-import cn.hutool.json.JSONUtil;
-import com.xin.xinChat.constant.RedisKeyConstant;
-import com.xin.xinChat.model.dto.system.SysSettingDTO;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -83,8 +79,6 @@ public class RedisUtils {
     }
 
 
-
-
     /**
      * 删除联系人列表
      *
@@ -93,6 +87,14 @@ public class RedisUtils {
     public void delUserContact(String userId) {
         stringRedisTemplate.delete(REDIS_USER_CONTACT_KEY + userId);
     }
+
+    /**
+     * 删除联系人
+     */
+    public void delUserContactInfo(String userId, String contactId) {
+        stringRedisTemplate.opsForList().remove(REDIS_USER_CONTACT_KEY + userId, 1, contactId);
+    }
+
 
     /**
      * 批量插入联系人信息

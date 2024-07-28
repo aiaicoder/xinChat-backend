@@ -212,7 +212,7 @@ public class ChannelContextUtils {
      * 被踢下线后断开连接
      * @param userId
      */
-    private void closeContext(String userId) {
+    public void closeContext(String userId) {
         if (StringUtils.isEmpty(userId)){
             return;
         }

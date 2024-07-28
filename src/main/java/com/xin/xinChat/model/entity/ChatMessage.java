@@ -77,6 +77,11 @@ public class ChatMessage implements Serializable {
     private Integer fileType;
 
     /**
+     * 文件路径
+     */
+    private String filePath;
+
+    /**
      * 状态 0：正在发送 1：已发送
      */
     private Integer status;

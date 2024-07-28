@@ -1,6 +1,12 @@
 package com.xin.xinChat.controller;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.StrUtil;
+import com.qcloud.cos.model.COSObject;
+import com.qcloud.cos.model.COSObjectInputStream;
+import com.qcloud.cos.utils.IOUtils;
 import com.xin.xinChat.common.BaseResponse;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.common.ResultUtils;
@@ -8,24 +14,28 @@ import com.xin.xinChat.constant.FileConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.manager.CosManager;
 import com.xin.xinChat.model.dto.file.UploadFileRequest;
+import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.entity.ChatMessage;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.enums.FileUploadBizEnum;
+import com.xin.xinChat.service.ChatMessageService;
 import com.xin.xinChat.service.UserService;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import com.xin.xinChat.utils.DateUtils;
+import com.xin.xinChat.utils.SysSettingUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import static com.xin.xinChat.constant.FileConstant.FILE_SIZE;
 
 /**
  * 文件接口
@@ -44,6 +54,14 @@ public class FileController {
     @Resource
     private CosManager cosManager;
 
+
+    @Resource
+    private SysSettingUtil sysSettingUtil;
+
+    @Resource
+    private ChatMessageService chatMessageService;
+
+
     /**
      * 文件上传
      *
@@ -52,6 +70,7 @@ public class FileController {
      * @return
      */
     @PostMapping("/upload")
+    @SaCheckLogin
     public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile,
             UploadFileRequest uploadFileRequest) {
         String biz = uploadFileRequest.getBiz();
@@ -66,7 +85,7 @@ public class FileController {
         String filename = uuid + "-" + multipartFile.getOriginalFilename();
         //格式化到月份
         String uploadDate = DateUtils.format(new Date(System.currentTimeMillis()), DateUtils.YYYYMM);
-        String filepath = String.format("/%s/%s/%s", fileUploadBizEnum.getValue(), loginUser.getId() + ":" + uploadDate , filename);
+        String filepath = String.format("/%s/%s/%s/%s", fileUploadBizEnum.getValue(), loginUser.getId() , uploadDate , filename);
         File file = null;
         try {
             // 上传文件
@@ -90,6 +109,39 @@ public class FileController {
     }
 
     /**
+     * 根据 id 下载
+     * @return
+     */
+    @GetMapping("/download")
+    @SaCheckRole
+    public void downloadGeneratorById(String filePath, HttpServletResponse response) throws IOException {
+        if (StrUtil.isBlank(filePath)) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "产物包不存在");
+        }
+        COSObjectInputStream cosObjectInput = null;
+        try {
+            COSObject cosObject = cosManager.getObject(filePath);
+            cosObjectInput = cosObject.getObjectContent();
+            // 处理下载到的流
+            byte[] bytes = IOUtils.toByteArray(cosObjectInput);
+            // 设置响应头
+            response.setContentType("application/octet-stream;charset=UTF-8");
+            response.setHeader("Content-Disposition", "attachment; filename=" + filePath);
+            // 写入响应
+            response.getOutputStream().write(bytes);
+            response.getOutputStream().flush();
+        } catch (Exception e) {
+            log.error("file download error, filepath = " + filePath, e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "下载失败");
+        } finally {
+            if (cosObjectInput != null) {
+                cosObjectInput.close();
+            }
+        }
+    }
+
+
+    /**
      * 校验文件
      *
      * @param multipartFile
@@ -100,12 +152,13 @@ public class FileController {
         long fileSize = multipartFile.getSize();
         // 文件后缀
         String fileSuffix = FileUtil.getSuffix(multipartFile.getOriginalFilename());
-        final long ONE_M = 1024 * 1024L;
+        SysSettingDTO sysSetting = sysSettingUtil.getSysSetting();
+        Integer maxUserAvatarSize = sysSetting.getMaxUserAvatarSize();
         if (FileUploadBizEnum.USER_AVATAR.equals(fileUploadBizEnum)) {
-            if (fileSize > ONE_M) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件大小不能超过 1M");
+            if (fileSize > maxUserAvatarSize * FILE_SIZE) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "头像大小不能超过" + maxUserAvatarSize + "M");
             }
-            if (!Arrays.asList("jpeg", "jpg", "svg", "png", "webp").contains(fileSuffix)) {
+            if (!Arrays.asList(FileConstant.IMAGE_FILE_EXTENSION).contains(fileSuffix)) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件类型错误");
             }
         }

@@ -1,8 +1,10 @@
 package com.xin.xinChat.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.qcloud.cos.model.COSObject;
 import com.xin.xinChat.model.dto.Message.MessageSendDTO;
 import com.xin.xinChat.model.entity.ChatMessage;
+import com.xin.xinChat.model.entity.User;
 
 
 /**
@@ -14,6 +16,8 @@ public interface ChatMessageService extends IService<ChatMessage> {
 
     MessageSendDTO saveMessage(ChatMessage chatMessage);
 
-    void saveFile(ChatMessage chatMessage,String userId, Long messageId, String fileUrl);
+    void saveFile(ChatMessage chatMessage, Long messageId, String fileUrl,String filePath);
+
+    void checkFileAuth(User loginUser, Long fileId);
 
 }
