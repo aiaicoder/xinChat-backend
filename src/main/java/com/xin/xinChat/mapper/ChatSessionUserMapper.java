@@ -18,7 +18,7 @@ public interface ChatSessionUserMapper extends BaseMapper<ChatSessionUser> {
     List<ChatSessionUser> selectChatSessionContactList(@Param("userId") String userId);
 
     void insertOrUpdateBatch(@Param("chatSessionUserList") List<ChatSessionUser> chatSessionUserList);
-
+    void insertOrUpdate(@Param("chatSessionUser") ChatSessionUser chatSessionUser);
 }
 
 

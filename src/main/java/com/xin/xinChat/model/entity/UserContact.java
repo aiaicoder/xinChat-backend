@@ -52,12 +52,6 @@ public class UserContact implements Serializable {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
-    /**
-     * 逻辑是否删除
-     */
-    @TableLogic
-    private Integer isDelete;
-
     @TableField(exist = false)
     private String contactName;
 

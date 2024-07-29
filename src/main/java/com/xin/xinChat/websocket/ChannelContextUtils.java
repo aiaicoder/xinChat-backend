@@ -237,6 +237,21 @@ public class ChannelContextUtils {
             return;
         }
         groupChannel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(messageSendDTO)));
+        //移除群聊
+        MessageTypeEnum messageTypeEnum = MessageTypeEnum.getByType(messageSendDTO.getMessageType());
+        if (MessageTypeEnum.LEAVE_GROUP == messageTypeEnum || MessageTypeEnum.REMOVE_GROUP == messageTypeEnum){
+            Object extendData = messageSendDTO.getExtendData();
+            String userId = BeanUtil.copyProperties(extendData,String.class);
+            Channel channel = USER_CHANNEL_CACHE.getIfPresent(userId);
+            if (channel == null){
+                return;
+            }
+            groupChannel.remove(channel);
+        }
+        if (MessageTypeEnum.DISSOLUTION_GROUP == messageTypeEnum){
+            GROUP_CHANNEL_CACHE.invalidate(groupId);
+            groupChannel.close();
+        }
     }
 
 

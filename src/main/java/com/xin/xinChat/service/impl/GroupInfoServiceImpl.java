@@ -8,6 +8,7 @@ import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.config.AppConfig;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.mapper.GroupInfoMapper;
+import com.xin.xinChat.mapper.UserMapper;
 import com.xin.xinChat.model.dto.Message.MessageSendDTO;
 import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.entity.*;
@@ -19,6 +20,7 @@ import com.xin.xinChat.utils.SysSettingUtil;
 import com.xin.xinChat.websocket.ChannelContextUtils;
 import com.xin.xinChat.websocket.MessageHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +66,13 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
 
     @Resource
     private UserContactApplyService userContactApplyService;
+
+    @Resource
+    private UserMapper userMapper;
+
+    @Resource
+    @Lazy
+    private GroupInfoService groupInfoService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -233,13 +242,68 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
         String[] contactIdList= selectContactIds.split(",");
         for (String contactId : contactIdList) {
             if (GroupOpEnum.REMOVE.getType().equals(opType)){
-
+                //移除群聊
+                //自己引入自己保证事务生效
+                groupInfoService.leaveGroup(contactId,groupId,MessageTypeEnum.REMOVE_GROUP);
             }else {
                 userContactApplyService.addContact(contactId,null,groupId,UserContactEnum.GROUP.getType(),null  );
             }
         }
 
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void leaveGroup(String userId, String groupId, MessageTypeEnum messageTypeEnum) {
+        GroupInfo groupInfo = getById(groupId);
+        if (groupInfo == null){
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        //如果自己是群主不能退出    z
+        if (userId.equals(groupInfo.getGroupOwnerId())){
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        QueryWrapper<UserContact> removeContactQueryWrapper =new QueryWrapper<>();
+        removeContactQueryWrapper.eq("contactId",groupId);
+        removeContactQueryWrapper.eq("userId",userId);
+        //退出群移除记录
+        boolean remove =userContactService.remove(removeContactQueryWrapper);
+        if (!remove){
+            throw new BusinessException(ErrorCode.OPERATION_ERROR,"退出失败请重试");
+        }
+        User user = userMapper.selectById(userId);
+        String sessionId = StringUtil.getSessionIdGroup(groupId);
+        String messageContent = String.format(messageTypeEnum.getInitMessage(),user.getUserName());
+        long currentTimeMillis = System.currentTimeMillis();
+        //更新会话
+        ChatSession chatSession = new ChatSession();
+        chatSession.setSessionId(sessionId);
+        chatSession.setLastMessage(messageContent);
+        chatSession.setLastReceiveTime(currentTimeMillis);
+        chatSessionService.updateById(chatSession);
+        //更新消息列表
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setSessionId(sessionId);
+        chatMessage.setMessageType(messageTypeEnum.getType());
+        chatMessage.setMessageContent(messageContent);
+        chatMessage.setContactId(groupId);
+        chatMessage.setContactType(UserContactEnum.GROUP.getType());
+        chatMessage.setSendTime(currentTimeMillis);
+        chatMessage.setStatus(MessageStatusEnum.SENDED.getStatus());
+        chatMessageService.save(chatMessage);
+        //查询群人数
+        QueryWrapper<UserContact> userContactQueryWrapper = new QueryWrapper<>();
+        userContactQueryWrapper.eq("contactId",groupId);
+        userContactQueryWrapper.eq("status",UserContactStatusEnum.FRIEND.getStatus());
+        long count = userContactService.count(userContactQueryWrapper);
+        //发送消息
+        MessageSendDTO messageSendDTO = BeanUtil.copyProperties(chatMessage, MessageSendDTO.class);
+        messageSendDTO.setExtendData(userId);
+        messageSendDTO.setMemberCount(count);
+        messageHandler.sendMessage(messageSendDTO);
+    }
+
+
 }
 
 

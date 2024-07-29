@@ -13,13 +13,12 @@ import com.xin.xinChat.model.entity.GroupInfo;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.entity.UserContact;
 import com.xin.xinChat.model.enums.GroupInfoEnum;
-import com.xin.xinChat.model.enums.UserContactEnum;
+import com.xin.xinChat.model.enums.MessageTypeEnum;
 import com.xin.xinChat.model.enums.UserContactStatusEnum;
 import com.xin.xinChat.model.vo.GroupInfoVo;
 import com.xin.xinChat.service.GroupInfoService;
 import com.xin.xinChat.service.UserContactService;
 import com.xin.xinChat.service.UserService;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -141,10 +140,33 @@ public class GroupInfoController {
         String selectContactIds = addOrRemoveGroupMemberRequest.getSelectContactIds();
         Integer opType = addOrRemoveGroupMemberRequest.getOpType();
         groupinfoService.addOrRemoveGroupMember(loginUser, groupId, selectContactIds, opType);
-        return null;
+        return ResultUtils.success("操作成功");
+    }
+
+    @PostMapping("/leaveGroup")
+    @SaCheckLogin
+    public BaseResponse<String> leaveGroup(String groupId) {
+        User loginUser = userService.getLoginUser();
+        String userId = loginUser.getId();
+        if (groupId == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "参数为空");
+        }
+        groupinfoService.leaveGroup(userId, groupId, MessageTypeEnum.LEAVE_GROUP);
+        return ResultUtils.success("已退出群聊");
     }
 
 
+    @PostMapping("/dismissGroup")
+    @SaCheckLogin
+    public BaseResponse<String> dismissGroup(String groupId) {
+        User loginUser = userService.getLoginUser();
+        String userId = loginUser.getId();
+        if (groupId == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "参数为空");
+        }
+        groupinfoService.dismissGroup(userId, groupId);
+        return ResultUtils.success("已解散群聊");
+    }
 
 
     private GroupInfo getDetailGroupInfo(User loginUser, String groupId) {

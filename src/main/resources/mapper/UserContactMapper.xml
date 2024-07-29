@@ -11,13 +11,11 @@
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="status" column="status" jdbcType="TINYINT"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
-            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         userId,contactId,contactType,
         createTime,status,updateTime,
-        isDelete
     </sql>
 
 
@@ -27,7 +25,6 @@
         INNER JOIN user u ON c.contactId = u.id
         WHERE c.userId = #{userId}
         AND c.contactType = #{contactType}
-        AND c.isDelete = 0
         <if test="status != null and status.length > 0">
             AND c.status IN
             <foreach item="item" index="index" collection="status" open="(" separator="," close=")">

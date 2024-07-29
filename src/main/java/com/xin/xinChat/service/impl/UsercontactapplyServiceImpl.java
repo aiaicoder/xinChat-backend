@@ -10,6 +10,7 @@ import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.mapper.ChatSessionUserMapper;
 import com.xin.xinChat.mapper.UserContactApplyMapper;
+import com.xin.xinChat.mapper.UserContactMapper;
 import com.xin.xinChat.model.dto.Message.MessageSendDTO;
 import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.entity.*;
@@ -76,6 +77,8 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
 
     @Resource
     private SysSettingUtil sysSettingUtil;
+
+
 
 
     @Override
@@ -391,7 +394,7 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
             chatSessionUser.setUserId(applyUserId);
             chatSessionUser.setContactId(contactId);
             chatSessionUser.setContactName(groupInfo.getGroupName());
-            chatSessionUserMapper.insert(chatSessionUser);
+            chatSessionUserMapper.insertOrUpdate(chatSessionUser);
             User applyUser = userService.getById(applyUserId);
             String sendMessage = String.format(MessageTypeEnum.ADD_GROUP.getInitMessage(), applyUser.getUserName());
             //创建会话

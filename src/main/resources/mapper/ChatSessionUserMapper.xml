@@ -47,4 +47,13 @@
         sessionId = VALUES(sessionId),
         contactName = VALUES(contactName)
     </insert>
+
+    <insert id="insertOrUpdate">
+        INSERT INTO ChatSessionUser (userId, contactId, sessionId,contactName)
+        VALUES
+            (#{chatSessionUser.userId},#{chatSessionUser.contactId}, #{chatSessionUser.sessionId},#{chatSessionUser.contactName})
+        ON DUPLICATE KEY UPDATE
+        sessionId = VALUES(sessionId),
+        contactName = VALUES(contactName)
+    </insert>
 </mapper>
