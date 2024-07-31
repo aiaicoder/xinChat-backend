@@ -1,6 +1,7 @@
 package com.xin.xinChat.exception;
 
 import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotRoleException;
 import com.xin.xinChat.common.BaseResponse;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.common.ResultUtils;
@@ -32,7 +33,10 @@ public class GlobalExceptionHandler {
             ErrorCode errorCode = determineErrorCode(notLoginException.getType());
             String errorMessage = errorCode.getMessage();
             return ResultUtils.error(errorCode, errorMessage);
-        } else {
+        }else if (e instanceof NotRoleException) {
+            return ResultUtils.error(ErrorCode.NO_AUTH_ERROR, "无权限");
+        }
+        else {
             return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "系统错误");
         }
     }

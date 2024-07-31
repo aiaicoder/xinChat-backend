@@ -1,6 +1,8 @@
 package com.xin.xinChat.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateUnit;
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -17,10 +19,7 @@ import com.xin.xinChat.model.entity.ChatMessage;
 import com.xin.xinChat.model.entity.ChatSession;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.entity.UserContact;
-import com.xin.xinChat.model.enums.MessageStatusEnum;
-import com.xin.xinChat.model.enums.MessageTypeEnum;
-import com.xin.xinChat.model.enums.UserContactEnum;
-import com.xin.xinChat.model.enums.UserContactStatusEnum;
+import com.xin.xinChat.model.enums.*;
 import com.xin.xinChat.service.ChatMessageService;
 import com.xin.xinChat.service.ChatSessionService;
 import com.xin.xinChat.service.UserContactService;
@@ -34,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -63,8 +63,6 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
     @Resource
     private SysSettingUtil sysSettingUtil;
 
-    @Resource
-    private CosManager cosManager;
 
     @Override
     public MessageSendDTO saveMessage(ChatMessage chatMessage) {
@@ -96,7 +94,7 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
         chatMessage.setSessionId(sessionId);
         //判断消息类型
         if (messageType == null ||
-                ArraysUtil.contains(new Integer[]{MessageTypeEnum.CHAT.getType(),
+                !ArraysUtil.contains(new Integer[]{MessageTypeEnum.CHAT.getType(),
                         MessageTypeEnum.MEDIA_CHAT.getType()}, messageType)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请发送正确的消息类型");
         }
@@ -185,6 +183,71 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
             if (count == 0){
                 throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
             }
+        }
+    }
+
+    @Override
+    public void recallMessage(Long messageId) {
+        ChatMessage chatMessage = getById(messageId);
+        if (chatMessage == null){
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        User loginUser = userService.getLoginUser();
+        String userId = loginUser.getId();
+        //消息撤回权限的校验
+        checkRecallMessage(loginUser,chatMessage);
+        //消息的撤回
+        chatMessage.setStatus(MessageStatusEnum.RECALLED.getStatus());
+        chatMessage.setRecallId(userId);
+        updateById(chatMessage);
+        //发送消息通知
+        MessageSendDTO messageSendDTO = new MessageSendDTO();
+        messageSendDTO.setExtendData(userService.getUserVO(loginUser));
+        messageSendDTO.setSenderUserId(userId);
+        messageSendDTO.setContactId(chatMessage.getContactId());
+        messageSendDTO.setMessageId(messageId);
+        messageSendDTO.setMessageType(MessageTypeEnum.RECALL_MESSAGE.getType());
+        messageSendDTO.setSendTime(System.currentTimeMillis());
+        String messageContent = String.format(MessageTypeEnum.RECALL_MESSAGE.getInitMessage(),chatMessage.getSendUserName());
+        if (!userId.equals(chatMessage.getSendUserId())){
+             messageContent = String.format(MessageTypeEnum.RECALL_MESSAGE.getInitMessage(),"管理员\t" + loginUser.getUserName()+"撤回了一条群成员消息");
+        }
+        messageSendDTO.setMessageContent(messageContent);
+        messageHandler.sendMessage(messageSendDTO);
+    }
+
+    private void checkRecallMessage(User loginUser,ChatMessage chatMessage){
+        MessageTypeEnum messageTypeEnum = MessageTypeEnum.getByType(chatMessage.getMessageType());
+        if (MessageTypeEnum.RECALL_MESSAGE == messageTypeEnum){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "消息已被撤回");
+        }
+        if (!loginUser.getId().equals(chatMessage.getSendUserId()) && !loginUser.getUserRole().equals(UserRoleEnum.ADMIN.getValue())){
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限");
+        }
+        Date sendDate = new Date(chatMessage.getSendTime());
+        Date now = new Date();
+        long between = DateUtil.between(sendDate, now, DateUnit.MINUTE);
+        if (between > 2){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "超过两分钟的消息，不能撤回哦");
+        }
+    }
+
+
+    @Override
+    public void showRecallMessage(String userId,ChatMessage chatMessage) {
+        String sendUserId = chatMessage.getSendUserId();
+        String recallId = chatMessage.getRecallId();
+        String contactId = chatMessage.getContactId();
+        UserContactEnum contactEnum = UserContactEnum.getEnumByPrefix(contactId);
+        User recallUser = userService.getById(recallId);
+        if (!recallId.equals(sendUserId) && contactEnum == UserContactEnum.GROUP){
+            if (recallUser != null){
+                chatMessage.setMessageContent(String.format(MessageTypeEnum.RECALL_MESSAGE.getInitMessage(),"管理员\t" + recallUser.getUserName()));
+            }
+        }else if (recallId.equals(sendUserId) && !sendUserId.equals(userId)){
+            chatMessage.setMessageContent(String.format(MessageTypeEnum.RECALL_MESSAGE.getInitMessage(),recallUser.getUserName()));
+        }else if (recallId.equals(userId)){
+            chatMessage.setMessageContent(String.format(MessageTypeEnum.RECALL_MESSAGE.getInitMessage(),"你"));
         }
     }
 }

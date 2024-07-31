@@ -9,8 +9,10 @@ import com.qcloud.cos.model.ciModel.auditing.UserInfo;
 import com.xin.xinChat.mapper.ChatSessionUserMapper;
 import com.xin.xinChat.model.dto.Message.MessageSendDTO;
 import com.xin.xinChat.model.entity.*;
+import com.xin.xinChat.model.enums.MessageStatusEnum;
 import com.xin.xinChat.model.enums.MessageTypeEnum;
 import com.xin.xinChat.model.enums.UserContactEnum;
+import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.ChatMessageService;
 import com.xin.xinChat.service.ChatSessionService;
 import com.xin.xinChat.service.UserContactApplyService;
@@ -85,6 +87,9 @@ public class ChannelContextUtils {
             attributeKey = AttributeKey.valueOf(channelId);
         }
         channel.attr(attributeKey).set(userId);
+        //将chanel放到缓存中管理起来
+        USER_CHANNEL_CACHE.put(userId,channel);
+        //遍历联系人
         List<String> contactList = redisUtils.getContactList(userId);
         //遍历id，判断是群id还是用户id，如果是群id，则加入群组‘；如果是用户id，则加入用户id对应的群组
         contactList.forEach(contactId -> {
@@ -92,8 +97,6 @@ public class ChannelContextUtils {
                 addGroupContext(contactId, userId);
             }
         });
-        //将chanel放到缓存中管理起来
-        USER_CHANNEL_CACHE.put(userId,channel);
         //发送心跳
         redisUtils.setHeartBeatTime(userId);
         //更新最后的上线时间
@@ -105,10 +108,6 @@ public class ChannelContextUtils {
         User userInfo = userService.getById(userId);
         Long sourceLastOffTime = userInfo.getLastOffTime();
         Long lastOffTime = sourceLastOffTime;
-        //判断是否三天都没有上线
-        if (sourceLastOffTime != null && System.currentTimeMillis() - THREE_DAYS_MILLIS > sourceLastOffTime ){
-            lastOffTime = System.currentTimeMillis() - THREE_DAYS_MILLIS;
-        }
         //查询所有的会话信息保证换了设备，可以拿到所有的会话消息
         List<ChatSessionUser> chatSessionUserList = chatSessionUserMapper.selectChatSessionContactList(userId);
         WsInitData wsInitData = new WsInitData();
@@ -119,9 +118,21 @@ public class ChannelContextUtils {
         //添加上自己，是为了拿到别人给自己发送的消息
         groupList.add(userId);
         QueryWrapper<ChatMessage> chatMessageQueryWrapper = new QueryWrapper<>();
+        //判断是否三天都没有上线
+        if (sourceLastOffTime != null && System.currentTimeMillis() - THREE_DAYS_MILLIS > sourceLastOffTime){
+            lastOffTime = System.currentTimeMillis() - THREE_DAYS_MILLIS;
+            chatMessageQueryWrapper.ge("sendTime", lastOffTime);
+        }else {
+            chatMessageQueryWrapper.le("sendTime", lastOffTime);
+            chatMessageQueryWrapper.ge("sendTime", System.currentTimeMillis() - THREE_DAYS_MILLIS);
+        }
         chatMessageQueryWrapper.in("contactId", groupList);
-        chatMessageQueryWrapper.ge("sendTime", lastOffTime);
         List<ChatMessage> chatMessageList = chatMessageService.list(chatMessageQueryWrapper);
+        chatMessageList.forEach(chatMessage -> {
+            if (chatMessage.getStatus().equals(MessageStatusEnum.RECALLED.getStatus())){
+                chatMessageService.showRecallMessage(userId,chatMessage);
+            }
+        });
         wsInitData.setChatMessageList(chatMessageList);
         //获取申请消息
         QueryWrapper<UserContactApply> userContactApplyQueryWrapper = new QueryWrapper<>();
@@ -188,7 +199,7 @@ public class ChannelContextUtils {
         }
         Channel userChanel = USER_CHANNEL_CACHE.getIfPresent(receiveUserId);
         if (userChanel == null) {
-            log.error("channel is null");
+            log.error("channel is null，检查用户ID");
             return;
         }
         //相对于客户端而已，自己既是发送人也是接收人,可以理解为是系统给他发的消息
@@ -200,13 +211,20 @@ public class ChannelContextUtils {
             messageSendDTO.setContactName(userInfo.getUserName());
             messageSendDTO.setMessageType(MessageTypeEnum.ADD_FRIEND.getType());
             messageSendDTO.setExtendData(null);
-        }else {
+        }else if (MessageTypeEnum.RECALL_MESSAGE.getType().equals(messageSendDTO.getMessageType())){
+            //如果是撤回消息两边看到的不一样
+            Object extendData = messageSendDTO.getExtendData();
+            UserVO userInfo= BeanUtil.copyProperties(extendData, UserVO.class);
+            messageSendDTO.setContactId(messageSendDTO.getSenderUserId());
+            messageSendDTO.setContactName(messageSendDTO.getSendUserName());
+            messageSendDTO.setMessageContent(String.format(MessageTypeEnum.RECALL_MESSAGE.getInitMessage(),userInfo.getUserName()));
+        } else {
             messageSendDTO.setContactId(messageSendDTO.getSenderUserId());
             messageSendDTO.setContactName(messageSendDTO.getSendUserName());
         }
         //发送消息
         userChanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(messageSendDTO)));
-    }
+        }
 
     /**
      * 被踢下线后断开连接
@@ -270,7 +288,7 @@ public class ChannelContextUtils {
             GROUP_CHANNEL_CACHE.put(groupId, groupChannel);
         }
         if (channel == null) {
-            log.error("channel is null");
+            log.error("channel is null,无法添加");
             return;
         }
         groupChannel.add(channel);

@@ -20,4 +20,7 @@ public interface ChatMessageService extends IService<ChatMessage> {
 
     void checkFileAuth(User loginUser, Long fileId);
 
+    void recallMessage(Long messageId);
+
+    void showRecallMessage(String userId,ChatMessage chatMessage);
 }

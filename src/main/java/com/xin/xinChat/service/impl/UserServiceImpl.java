@@ -13,6 +13,7 @@ import com.xin.xinChat.constant.RedisKeyConstant;
 import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.mapper.UserMapper;
+import com.xin.xinChat.model.dto.Message.MessageSendDTO;
 import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.dto.user.UserQueryRequest;
 import com.xin.xinChat.model.entity.*;
@@ -25,6 +26,7 @@ import com.xin.xinChat.utils.SqlUtils;
 import com.xin.xinChat.utils.StringUtil;
 import com.xin.xinChat.utils.SysSettingUtil;
 import com.xin.xinChat.websocket.ChannelContextUtils;
+import com.xin.xinChat.websocket.MessageHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -87,6 +89,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Resource
     @Lazy
     private ChannelContextUtils channelContextUtils;
+
+
+    @Resource
+    MessageHandler messageHandler;
 
 
     @Override
@@ -337,9 +343,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public void forceKickOut(String userId) {
+        //发送消息通知
+        MessageSendDTO messageSendDTO = new MessageSendDTO();
+        messageSendDTO.setMessageContent("您被管理员强制下线");
+        messageSendDTO.setMessageType(MessageTypeEnum.FORCE_OFF_LINE.getType());
+        messageSendDTO.setContactId(userId);
+        messageHandler.sendMessage(messageSendDTO);
         //踢人下线不会清除Token信息，而是将其打上特定标记，再次访问会提示：Token已被踢下线。
         StpUtil.kickout(userId);
-        //todo 发送消息通知
+
     }
 
     @Override

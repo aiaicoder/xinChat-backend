@@ -7,7 +7,9 @@ package com.xin.xinChat.model.enums;
  */
 public enum MessageStatusEnum {
     SENDING(0, "发送中"),
-    SENDED(1, "已发送"),;
+    SENDED(1, "已发送"),
+    RECALLED(2, "已撤回");
+
 
     private int status;
     private String desc;

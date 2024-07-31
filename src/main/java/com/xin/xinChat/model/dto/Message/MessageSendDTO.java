@@ -34,7 +34,7 @@ public class MessageSendDTO<T> implements Serializable {
     //发送类型
     private Integer messageType;
     //发送时间
-    private String sendTime;
+    private Long sendTime;
     //联系人类型
     private Integer contactType;
     //扩展信息

@@ -170,9 +170,9 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
                 throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
             }
             joinType = user.getJoinType();
+            //如果对方无需同意就可以添加，就直接添加
             if (JoinTypeEnum.JOIN.getType().equals(joinType)) {
-
-                //todo 添加联系人
+                addContact(userApplyId, receiveId, contactId, joinType, applyInfo);
                 return joinType;
             }
         }

@@ -9,8 +9,11 @@ import com.xin.xinChat.mapper.UserContactMapper;
 import com.xin.xinChat.model.entity.UserContact;
 import com.xin.xinChat.model.enums.UserContactStatusEnum;
 import com.xin.xinChat.service.UserContactService;
+import com.xin.xinChat.utils.RedisUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
 
 /**
  * @author 15712
@@ -20,6 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserContactServiceImpl extends ServiceImpl<UserContactMapper, UserContact>
         implements UserContactService {
+
+    @Resource
+    private RedisUtils redisUtils;
 
 
     @Override
@@ -55,8 +61,10 @@ public class UserContactServiceImpl extends ServiceImpl<UserContactMapper, UserC
         friendContactUpdateWrapper.eq("userId", contactId);
         friendContactUpdateWrapper.eq("contactId", userId);
         boolean friendContact = update(friendContactUpdateWrapper);
-        //todo 从我的好友列表缓存中删除对方
-        //todo 从对方好友缓存列表中删除自己
+        //从我的好友列表缓存中删除对方
+        redisUtils.delUserContactInfo(userId,contactId);
+        //从对方好友缓存列表中删除自己
+        redisUtils.delUserContactInfo(contactId,userId);
         return friendContact && myContact;
     }
 }

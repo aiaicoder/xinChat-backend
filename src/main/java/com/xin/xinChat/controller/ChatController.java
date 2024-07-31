@@ -12,6 +12,7 @@ import com.xin.xinChat.config.AppConfig;
 import com.xin.xinChat.constant.FileConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.manager.CosManager;
+import com.xin.xinChat.model.dto.Message.MessageBaseRequest;
 import com.xin.xinChat.model.dto.Message.MessageSendDTO;
 import com.xin.xinChat.model.dto.Message.MessageSendRequest;
 import com.xin.xinChat.model.dto.file.UploadFileRequest;
@@ -24,6 +25,7 @@ import com.xin.xinChat.service.ChatSessionUserService;
 import com.xin.xinChat.service.UserService;
 import com.xin.xinChat.utils.DateUtils;
 import com.xin.xinChat.utils.SysSettingUtil;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,7 +65,8 @@ public class ChatController {
     @Resource
     private AppConfig appConfig;
 
-    @PostMapping("/sendMessage")
+    @PostMapping("/msg/sendMessage")
+    @ApiOperation("发送消息")
     public BaseResponse<MessageSendDTO> sendMessage(@RequestBody MessageSendRequest messageSendRequest) {
         if (messageSendRequest == null) {
             return null;
@@ -94,6 +97,14 @@ public class ChatController {
         return ResultUtils.success(messageSendDTO);
     }
 
+    @PostMapping("/msg/recall")
+    @ApiOperation("撤回消息")
+    public BaseResponse<Boolean> recallMessage(@RequestBody MessageBaseRequest messageBaseRequest) {
+        Long messageId = messageBaseRequest.getMessageId();
+        chatMessageService.recallMessage(messageId);
+        return ResultUtils.success(true);
+    }
+
     /**
      * 文件上传
      * 当我们向群组或者私聊发送文件时，需要先上传文件到 COS，然后获取到 COS 上传后的文件地址，再保存到数据库中。
@@ -103,7 +114,8 @@ public class ChatController {
      * @param uploadFileRequest 上传请求
      * @return
      */
-    @PostMapping("/upload")
+    @PostMapping("/msg/upload")
+    @ApiOperation("发送文件")
     public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile,
                                            UploadFileRequest uploadFileRequest) {
         String biz = uploadFileRequest.getBiz();
@@ -161,7 +173,7 @@ public class ChatController {
      *
      * @return
      */
-    @GetMapping("/download")
+    @GetMapping("/msg/download")
     @SaCheckLogin
     public void downloadFile(Long messageId, HttpServletResponse response) throws IOException {
         ChatMessage chatMessage = chatMessageService.getById(messageId);
