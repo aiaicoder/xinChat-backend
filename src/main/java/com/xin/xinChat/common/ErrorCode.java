@@ -18,6 +18,8 @@ public enum ErrorCode {
     SYSTEM_ERROR(50000, "系统内部异常"),
     OPERATION_ERROR(50001, "操作失败"),
 
+    AI_ERROR(50002, "AI 错误"),
+
     MAX_GROUP_COUNT_ERROR(90002,"群聊人数已满"),
     NOT_FRIEND_ERROR(90003, "您不是对方好友，请先向对方发送好友验证"),
     NOT_IN_GROUP_ERROR(90004, "您以不在群聊，请重新申请入群"),

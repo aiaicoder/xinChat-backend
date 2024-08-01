@@ -1,6 +1,7 @@
 package com.xin.xinChat.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.xin.xinChat.MainApplication;
+import com.xin.xinChat.manager.AiManager;
 import com.xin.xinChat.mapper.UserMapper;
 import com.xin.xinChat.model.entity.User;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,12 @@ class FasterJavaDemoApplicationTests {
 
     @Resource
     private UserMapper userMapper;
+
+
+    @Resource
+    private AiManager aiManager;
+
+
 
     @Test
     void selectTest() {

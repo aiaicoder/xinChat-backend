@@ -74,7 +74,11 @@ public class UserController {
     @GetMapping("/checkCode")
     public BaseResponse<Map<String, String>> checkCode(HttpServletRequest request) {
         String ipAddress = NetUtils.getIpAddress(request);
-        redisLimiterManager.doRateLimit(LIMIT_KEY_PREFIX + ipAddress);
+        ipAddress = ipAddress.replaceAll(":", ".");
+        boolean rateLimit = redisLimiterManager.doRateLimit(LIMIT_KEY_PREFIX + ipAddress);
+        if (!rateLimit) {
+            throw new BusinessException(ErrorCode.TOO_MANY_REQUEST, "验证码获取过于频繁");
+        }
         ArithmeticCaptcha captcha = new ArithmeticCaptcha(100, 43);
         String checkCodeKey = UUID.fastUUID().toString();
         String code = captcha.text();

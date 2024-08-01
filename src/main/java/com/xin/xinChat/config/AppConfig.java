@@ -28,5 +28,7 @@ public class AppConfig {
     @Value("${sa-token.timeout}")
     public Long tokenTimeout;
 
+    @Value("${AI.LIMIT}")
+    public Integer aiLimit;
 
 }

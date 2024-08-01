@@ -20,19 +20,21 @@ public interface RedisKeyConstant {
     /**
      * 系统设置
      */
-    String REDIS_KEY_SYS_SETTING = "xinChat:syssetting:";
+    String REDIS_KEY_SYS_SETTING = "xinChat:sysSetting:";
 
 
     /**
      * 用户联系人
      */
-    String REDIS_USER_CONTACT_KEY = "xinChat:user_contact:";
+    String REDIS_USER_CONTACT_KEY = "xinChat:userContact:";
 
 
     /**
      * 用户信息缓存
      */
     String REDIS_USER_INFO_KEY = "xinChat:user_info:";
+
+    String REDIS_AI_KEY = "xinChat:ai:";
 
 
     /**

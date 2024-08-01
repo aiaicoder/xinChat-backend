@@ -14,7 +14,7 @@ import com.xin.xinChat.model.entity.User;
 */
 public interface ChatMessageService extends IService<ChatMessage> {
 
-    MessageSendDTO saveMessage(ChatMessage chatMessage);
+    MessageSendDTO saveMessage(User loginUser,ChatMessage chatMessage);
 
     void saveFile(ChatMessage chatMessage, Long messageId, String fileUrl,String filePath);
 

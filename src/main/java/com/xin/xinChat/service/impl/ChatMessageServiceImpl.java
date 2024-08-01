@@ -12,6 +12,7 @@ import com.qcloud.cos.model.COSObjectInputStream;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.exception.BusinessException;
+import com.xin.xinChat.manager.AiManager;
 import com.xin.xinChat.manager.CosManager;
 import com.xin.xinChat.mapper.ChatMessageMapper;
 import com.xin.xinChat.model.dto.Message.MessageSendDTO;
@@ -65,10 +66,13 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
     @Resource
     private SysSettingUtil sysSettingUtil;
 
+    @Resource
+    private AiManager aiManager;
+
 
     @Override
-    public MessageSendDTO saveMessage(ChatMessage chatMessage) {
-        User loginUser = userService.getLoginUser();
+    public MessageSendDTO saveMessage(User loginUser,ChatMessage chatMessage) {
+
         String sendUserId = loginUser.getId();
         String contactId = chatMessage.getContactId();
         //判断不是机器人回复
@@ -132,15 +136,14 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
             ChatMessage chatMessageRobot = new ChatMessage();
             chatMessageRobot.setContactId(sendUserId);
             //这里可以对接ai实现聊天
-            chatMessageRobot.setMessageContent("我只是一个机器人无法和你聊天");
+            String aiAnswer = aiManager.doChat(sendUserId, messageContent);
+            chatMessageRobot.setMessageContent(aiAnswer);
             chatMessageRobot.setMessageType(MessageTypeEnum.CHAT.getType());
-            saveMessage(chatMessage);
+            saveMessage(robotUser,chatMessageRobot);
         } else {
             messageHandler.sendMessage(messageSendDTO);
         }
         return messageSendDTO;
-
-
     }
 
     @Override
@@ -219,8 +222,8 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
     }
 
     private void checkRecallMessage(User loginUser,ChatMessage chatMessage){
-        MessageTypeEnum messageTypeEnum = MessageTypeEnum.getByType(chatMessage.getMessageType());
-        if (MessageTypeEnum.RECALL_MESSAGE == messageTypeEnum){
+        MessageStatusEnum messageStatusEnum= MessageStatusEnum.getEnumByStatus(chatMessage.getStatus());
+        if (MessageStatusEnum.RECALLED == messageStatusEnum){
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "消息已被撤回");
         }
         if (!loginUser.getId().equals(chatMessage.getSendUserId()) && !loginUser.getUserRole().equals(UserRoleEnum.ADMIN.getValue())){

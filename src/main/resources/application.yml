@@ -19,7 +19,7 @@ spring:
     password: 123
     # Redis 配置
   redis:
-    database: 3
+    database: 2
     host: 10.101.100.2
     port: 6379
     timeout: 5000
@@ -92,9 +92,16 @@ knife4j:
 ##超级管理员id
 admin:
   email: shuaishuai_li@qq.com,112@qq.com
-
 ws:
   port: 8104
+
+AI:
+  LIMIT: 30
+
+yuapi:
+  client:
+    access-key:
+    secret-key:
 
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:

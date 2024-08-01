@@ -86,6 +86,7 @@ public class ChatController {
         if (messageContent.length() > 500) {
             messageContent = messageContent.substring(0, 500);
         }
+        User loginUser = userService.getLoginUser();
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setContactId(contactId);
         chatMessage.setMessageContent(messageContent);
@@ -93,7 +94,7 @@ public class ChatController {
         chatMessage.setFileSize(fileSize);
         chatMessage.setFileType(fileType);
         chatMessage.setMessageType(messageType);
-        MessageSendDTO messageSendDTO = chatMessageService.saveMessage(chatMessage);
+        MessageSendDTO messageSendDTO = chatMessageService.saveMessage(loginUser,chatMessage);
         return ResultUtils.success(messageSendDTO);
     }
 
