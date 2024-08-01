@@ -1,6 +1,7 @@
 package com.xin.xinChat.utils;
 
 import cn.hutool.core.collection.ListUtil;
+import com.xin.xinChat.model.vo.UserVO;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -122,6 +123,28 @@ public class RedisUtils {
     public List<String> getContactList(String userId) {
         List<String> userContact = stringRedisTemplate.opsForList().range(REDIS_USER_CONTACT_KEY + userId, 0, -1);
         return userContact == null ? ListUtil.empty() : userContact;
+    }
+
+    /**
+     * 设置用户信息缓存
+     */
+    public void setUserInfo(String userId, String userInfo, Long expireTime, TimeUnit timeUnit) {
+        stringRedisTemplate.opsForValue().set(REDIS_USER_INFO_KEY + userId, userInfo, expireTime, timeUnit);
+    }
+
+
+    /**
+     * 移除用户信息
+     */
+    public void removeUserInfo(String userId) {
+        stringRedisTemplate.delete(REDIS_USER_INFO_KEY + userId);
+    }
+
+    /**
+     * 获取用户信息
+     */
+    public String getUserInfo(String userId) {
+        return stringRedisTemplate.opsForValue().get(REDIS_USER_INFO_KEY + userId);
     }
 
 }

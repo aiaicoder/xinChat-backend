@@ -3,6 +3,7 @@ package com.xin.xinChat.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -20,6 +21,7 @@ import com.xin.xinChat.model.entity.ChatSession;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.entity.UserContact;
 import com.xin.xinChat.model.enums.*;
+import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.ChatMessageService;
 import com.xin.xinChat.service.ChatSessionService;
 import com.xin.xinChat.service.UserContactService;
@@ -239,7 +241,12 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
         String recallId = chatMessage.getRecallId();
         String contactId = chatMessage.getContactId();
         UserContactEnum contactEnum = UserContactEnum.getEnumByPrefix(contactId);
-        User recallUser = userService.getById(recallId);
+        String userInfo = redisUtils.getUserInfo(recallId);
+        User recallUser = null;
+        if (userInfo == null){
+            recallUser = userService.getById(recallId);
+        }
+        recallUser = JSONUtil.toBean(userInfo, User.class);
         if (!recallId.equals(sendUserId) && contactEnum == UserContactEnum.GROUP){
             if (recallUser != null){
                 chatMessage.setMessageContent(String.format(MessageTypeEnum.RECALL_MESSAGE.getInitMessage(),"管理员\t" + recallUser.getUserName()));

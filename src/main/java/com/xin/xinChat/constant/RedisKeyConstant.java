@@ -6,6 +6,10 @@ package com.xin.xinChat.constant;
  * @date 2024/6/9 12:40
  */
 public interface RedisKeyConstant {
+
+    /**
+     *
+     */
     String REDIS_KEY_CHECK_CODE = "xinChat:checkCode:";
 
     /**
@@ -22,7 +26,13 @@ public interface RedisKeyConstant {
     /**
      * 用户联系人
      */
-    String REDIS_USER_CONTACT_KEY = "user_contact:";
+    String REDIS_USER_CONTACT_KEY = "xinChat:user_contact:";
+
+
+    /**
+     * 用户信息缓存
+     */
+    String REDIS_USER_INFO_KEY = "xinChat:user_info:";
 
 
     /**
@@ -33,7 +43,7 @@ public interface RedisKeyConstant {
     /**
      * 用户心跳
      */
-    String REDIS_USER_HEART_BEAT_KEY = "user_heart_beat:";
+    String REDIS_USER_HEART_BEAT_KEY = "xinChat:user_heart_beat:";
 
     String LIMIT_KEY_PREFIX = "xinChat:checkCode:limit:";
 

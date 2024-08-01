@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xin.xinChat.common.ErrorCode;
@@ -223,13 +224,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         QueryWrapper<UserContact> userContactQueryWrapper = new QueryWrapper<>();
         userContactQueryWrapper.eq("userId", user.getId());
         userContactQueryWrapper.eq("status", UserContactStatusEnum.FRIEND.getStatus());
-         List<UserContact> userContactList = userContactService.list(userContactQueryWrapper);
+        List<UserContact> userContactList = userContactService.list(userContactQueryWrapper);
         List<String> contactList = userContactList.stream().map(UserContact::getContactId).collect(Collectors.toList());
         redisUtils.delUserContact(user.getId());
-        if (!contactList.isEmpty()){
+        if (!contactList.isEmpty()) {
             redisUtils.addUserContactBatch(user.getId(), contactList, appConfig.getTokenTimeout(), TimeUnit.SECONDS);
         }
-        //todo 查询我的群组
+        //记录用户登录的信息到redis，过期时间为token的过期时间，这个和用户的登录态不同，仅保存用户的基本信息
+        UserVO userVO = getUserVO(user);
+        redisUtils.setUserInfo(user.getId(), JSONUtil.toJsonStr(userVO), appConfig.getTokenTimeout(), TimeUnit.SECONDS);
         return this.getLoginUserVO(user);
     }
 
@@ -334,6 +337,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         StpUtil.getSession().set(UserConstant.USER_LOGIN_STATE,loginUser);
         //更新会话信息中的昵称信息
         chatSessionUserService.removeRedundancyInfo(contactName, userId);
+        //更新redis中的用户信息
+        redisUtils.setUserInfo(userId, JSONUtil.toJsonStr(loginUser), appConfig.getTokenTimeout(), TimeUnit.SECONDS);
         return b;
     }
 
@@ -397,8 +402,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         chatMessage.setContactType(UserContactEnum.USER.getType());
         chatMessage.setStatus(MessageStatusEnum.SENDED.getStatus());
         chatMessageService.save(chatMessage);
-
-
     }
 
     /**
