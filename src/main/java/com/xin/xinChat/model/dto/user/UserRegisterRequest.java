@@ -1,7 +1,8 @@
 package com.xin.xinChat.model.dto.user;
 
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 用户注册请求体
@@ -22,7 +23,8 @@ public class UserRegisterRequest implements Serializable {
     /**
      * 密码
      */
-    private String userPassword;
+    private String password;
+
 
     /**
      * 校验密码

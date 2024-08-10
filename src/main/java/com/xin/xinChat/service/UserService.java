@@ -30,13 +30,25 @@ public interface UserService extends IService<User> {
 
 
     /**
+     * 重置密码
+     * @param email
+     * @param userPassword
+     * @param checkPassword
+     * @param checkCode
+     * @param checkCodeKey
+     * @return
+     */
+    Boolean restPassword(String email, String userPassword, String checkPassword, String checkCode, String checkCodeKey);
+
+
+    /**
      * 用户登录
      *
      * @param email  用户账户
      * @param userPassword 用户密码
      * @return 脱敏后的用户信息
      */
-    LoginUserVO userLogin(String email, String userPassword,String checkCode,String checkCodeKey);
+    LoginUserVO userLogin(String email, String userPassword,String checkCode,String checkCodeKey,Boolean rememberMe);
 
 
 

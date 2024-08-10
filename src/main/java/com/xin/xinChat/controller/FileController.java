@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.xin.xinChat.utils.DateUtils;
 import com.xin.xinChat.utils.SysSettingUtil;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -71,6 +72,7 @@ public class FileController {
      */
     @PostMapping("/upload")
     @SaCheckLogin
+    @ApiOperation("上传头像")
     public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile,
             UploadFileRequest uploadFileRequest) {
         String biz = uploadFileRequest.getBiz();
@@ -107,39 +109,6 @@ public class FileController {
             }
         }
     }
-
-    /**
-     * 根据 id 下载
-     * @return
-     */
-    @GetMapping("/download")
-    @SaCheckRole
-    public void downloadGeneratorById(String filePath, HttpServletResponse response) throws IOException {
-        if (StrUtil.isBlank(filePath)) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "产物包不存在");
-        }
-        COSObjectInputStream cosObjectInput = null;
-        try {
-            COSObject cosObject = cosManager.getObject(filePath);
-            cosObjectInput = cosObject.getObjectContent();
-            // 处理下载到的流
-            byte[] bytes = IOUtils.toByteArray(cosObjectInput);
-            // 设置响应头
-            response.setContentType("application/octet-stream;charset=UTF-8");
-            response.setHeader("Content-Disposition", "attachment; filename=" + filePath);
-            // 写入响应
-            response.getOutputStream().write(bytes);
-            response.getOutputStream().flush();
-        } catch (Exception e) {
-            log.error("file download error, filepath = " + filePath, e);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "下载失败");
-        } finally {
-            if (cosObjectInput != null) {
-                cosObjectInput.close();
-            }
-        }
-    }
-
 
     /**
      * 校验文件

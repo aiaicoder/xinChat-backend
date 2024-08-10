@@ -23,6 +23,7 @@ import com.xin.xinChat.utils.NetUtils;
 import com.xin.xinChat.utils.RedisUtils;
 import com.xin.xinChat.websocket.ChannelContextUtils;
 import com.xin.xinChat.websocket.MessageHandler;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -79,7 +80,7 @@ public class UserController {
         if (!rateLimit) {
             throw new BusinessException(ErrorCode.TOO_MANY_REQUEST, "验证码获取过于频繁");
         }
-        ArithmeticCaptcha captcha = new ArithmeticCaptcha(100, 43);
+        ArithmeticCaptcha captcha = new ArithmeticCaptcha(130, 42);
         String checkCodeKey = UUID.fastUUID().toString();
         String code = captcha.text();
         log.info("验证码是：{}", code);
@@ -100,20 +101,42 @@ public class UserController {
      * @return
      */
     @PostMapping("/register")
+    @ApiOperation("用户注册")
     public BaseResponse<String> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         String email = userRegisterRequest.getEmail();
-        String userPassword = userRegisterRequest.getUserPassword();
+        String userPassword = userRegisterRequest.getPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
         String checkCode = userRegisterRequest.getCheckCode();
         String checkCodeKey = userRegisterRequest.getCheckCodeKey();
-        if (StringUtils.isAnyBlank(email, userPassword, checkPassword,checkCode,checkCodeKey)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数缺失");
+        if (StringUtils.isAnyBlank(email, userPassword, checkPassword, checkCode, checkCodeKey)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数缺失");
         }
         String result = userService.userRegister(email, userPassword, checkPassword, checkCode, checkCodeKey);
         return ResultUtils.success(result);
+    }
+
+    @PostMapping("/resetPassword")
+    @ApiOperation("重置密码")
+    public BaseResponse<Boolean> resetPassword(@RequestBody UserRegisterRequest userRegisterRequest) {
+        if (userRegisterRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String email = userRegisterRequest.getEmail();
+        String userPassword = userRegisterRequest.getPassword();
+        String checkPassword = userRegisterRequest.getCheckPassword();
+        String checkCode = userRegisterRequest.getCheckCode();
+        String checkCodeKey = userRegisterRequest.getCheckCodeKey();
+        if (StringUtils.isAnyBlank(email, userPassword, checkPassword, checkCode, checkCodeKey)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数缺失");
+        }
+        Boolean result = userService.restPassword(email, userPassword, checkPassword, checkCode, checkCodeKey);
+        if (!result){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新失败请检查邮箱是否正确");
+        }
+        return ResultUtils.success(true);
     }
 
 
@@ -124,22 +147,22 @@ public class UserController {
      * @return
      */
     @PostMapping("/login")
+    @ApiOperation("用户登录")
     public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest) {
         if (userLoginRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         String email = userLoginRequest.getEmail();
-        String userPassword = userLoginRequest.getUserPassword();
+        String userPassword = userLoginRequest.getPassword();
         String checkCode = userLoginRequest.getCheckCode();
         String checkCodeKey = userLoginRequest.getCheckCodeKey();
+        Boolean rememberMe = userLoginRequest.getRememberMe();
         if (StringUtils.isAnyBlank(email, userPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        LoginUserVO loginUserVO = userService.userLogin(email, userPassword, checkCode, checkCodeKey);
+        LoginUserVO loginUserVO = userService.userLogin(email, userPassword, checkCode, checkCodeKey, rememberMe);
         return ResultUtils.success(loginUserVO);
     }
-
-
 
 
     /**
@@ -152,6 +175,7 @@ public class UserController {
         boolean result = userService.userLogout();
         return ResultUtils.success(result);
     }
+
 
     @PostMapping("/updatePassword")
     @SaCheckLogin

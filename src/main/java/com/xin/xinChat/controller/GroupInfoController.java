@@ -19,6 +19,7 @@ import com.xin.xinChat.model.vo.GroupInfoVo;
 import com.xin.xinChat.service.GroupInfoService;
 import com.xin.xinChat.service.UserContactService;
 import com.xin.xinChat.service.UserService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,6 +47,7 @@ public class GroupInfoController {
     private UserService userService;
 
     @PostMapping("/saveGroup")
+    @ApiOperation("创建或者修改群组")
     @SaCheckLogin
     public BaseResponse<String> saveGroup(@RequestBody SaveGroupRequest saveGroupRequest) {
         String groupOwnerId = userService.getLoginUser().getId();
@@ -70,6 +72,7 @@ public class GroupInfoController {
      * @return
      */
     @PostMapping("/loadMyGroup")
+    @ApiOperation("获取自己的群聊")
     @SaCheckLogin
     public BaseResponse<List<GroupInfo>> loadMyGroup() {
         User loginUser = userService.getLoginUser();
@@ -81,6 +84,7 @@ public class GroupInfoController {
 
 
     @PostMapping("/getGroupInfo")
+    @ApiOperation("获得群聊信息")
     @SaCheckLogin
     public BaseResponse<GroupInfo> getGroupInfo(@RequestBody GroupInfoQueryRequest groupInfoQueryRequest) {
         if (groupInfoQueryRequest == null) {
@@ -103,6 +107,7 @@ public class GroupInfoController {
      */
     @PostMapping("/getGroupInfoChat")
     @SaCheckLogin
+    @ApiOperation("获得群聊信息")
     public BaseResponse<GroupInfoVo> getGroupInfoChat(@RequestBody GroupInfoQueryRequest groupInfoQueryRequest) {
         if (groupInfoQueryRequest == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "参数为空");
@@ -130,6 +135,7 @@ public class GroupInfoController {
     }
 
     @PostMapping("/addOrRemoveGroupMember")
+    @ApiOperation("添加或者移除群聊成员")
     @SaCheckLogin
     public BaseResponse<String> addOrRemoveGroupMember(@RequestBody AddOrRemoveGroupMemberRequest addOrRemoveGroupMemberRequest) {
         User loginUser = userService.getLoginUser();
@@ -144,6 +150,7 @@ public class GroupInfoController {
     }
 
     @PostMapping("/leaveGroup")
+    @ApiOperation("退出群聊")
     @SaCheckLogin
     public BaseResponse<String> leaveGroup(String groupId) {
         User loginUser = userService.getLoginUser();
@@ -157,6 +164,7 @@ public class GroupInfoController {
 
 
     @PostMapping("/dismissGroup")
+    @ApiOperation("解散群聊")
     @SaCheckLogin
     public BaseResponse<String> dismissGroup(String groupId) {
         User loginUser = userService.getLoginUser();

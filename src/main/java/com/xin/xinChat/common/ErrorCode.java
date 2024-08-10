@@ -10,8 +10,13 @@ public enum ErrorCode {
 
     SUCCESS(0, "ok"),
     PARAMS_ERROR(40000, "请求参数错误"),
-    NOT_LOGIN_ERROR(40100, "未登录"),
-    USING_ERROR(40102,"用户已登录"),
+     NOT_LOGIN_ERROR(40100, "未登录"),
+    BE_REPLACED_MESSAGE(40103,"账号异地登录"),
+
+    TOKEN_TIMEOUT_MESSAGE(40104,"登录过期"),
+    KICK_OUT_ERROR(40105,"你已被踢下线"),
+    TOKEN_FREEZE_ERROR(40106,"账号已被冻结"),
+    USING_ERROR(40106,"用户已登录"),
     NO_AUTH_ERROR(40101, "无权限"),
     NOT_FOUND_ERROR(40400, "请求数据不存在"),
     FORBIDDEN_ERROR(40300, "禁止访问"),
@@ -24,15 +29,11 @@ public enum ErrorCode {
     NOT_FRIEND_ERROR(90003, "您不是对方好友，请先向对方发送好友验证"),
     NOT_IN_GROUP_ERROR(90004, "您以不在群聊，请重新申请入群"),
 
-    INVALID_TOKEN_ERROR(401002,"登录失效"),
+    INVALID_TOKEN_ERROR(40102,"登录失效"),
 
-    TOO_MANY_REQUEST(50011,"请求超过限制"),
+    TOO_MANY_REQUEST(50011,"请求超过限制");
 
-    BE_REPLACED_MESSAGE(401003,"账号异地登录"),
 
-    TOKEN_TIMEOUT_MESSAGE(401004,"登录过期"),
-    KICK_OUT_ERROR(401005,"你已被踢下线"),
-    TOKEN_FREEZE_ERROR(401006,"账号已被冻结");
 
     /**
      * 状态码

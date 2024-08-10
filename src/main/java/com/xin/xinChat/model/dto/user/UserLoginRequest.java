@@ -16,9 +16,11 @@ public class UserLoginRequest implements Serializable {
 
     private String email;
 
-    private String userPassword;
+    private String password;
 
     private String checkCode;
 
     private String checkCodeKey;
+
+    private Boolean rememberMe;
 }

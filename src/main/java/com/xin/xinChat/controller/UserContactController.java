@@ -26,6 +26,7 @@ import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.UserContactApplyService;
 import com.xin.xinChat.service.UserContactService;
 import com.xin.xinChat.service.UserService;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,6 +63,7 @@ public class UserContactController {
 
     @PostMapping("/search")
     @SaCheckLogin
+    @ApiOperation("搜索好友或群组")
     public BaseResponse<UserSearchVo> search(@RequestBody UserSearchRequest userSearchRequest) {
         if (userSearchRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");

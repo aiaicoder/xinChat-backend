@@ -1,11 +1,14 @@
 package com.xin.xinChat.service.impl;
 
+import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.config.AppConfig;
@@ -117,9 +120,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
         }
         //检测账号是否包含特殊字符
-        String validPattern = "^([a-z0-9A-Z]+[-|\\\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\\\.)+[a-zA-Z]{2,}$";
+        String validPattern = "^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$";
         Matcher matcher = Pattern.compile(validPattern).matcher(email);
-        if (matcher.find()) {
+        if (!matcher.find()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "非法邮箱");
         }
         synchronized (email.intern()) {
@@ -173,7 +176,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public LoginUserVO userLogin(String email, String userPassword, String checkCode, String checkCodeKey) {
+    public LoginUserVO  userLogin(String email, String userPassword, String checkCode, String checkCodeKey, Boolean rememberMe) {
         // 1. 校验
         if (StringUtils.isAnyBlank(email, userPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号密码为空");
@@ -214,7 +217,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (ArrayUtil.contains(adminEmail.split(","), userEmail) && !user.getUserRole().equals(UserRoleEnum.ADMIN.getValue())) {
             user.setUserRole(UserRoleEnum.ADMIN.getValue());
         }
-        StpUtil.login(user.getId());
+        //是否记住我
+        if (rememberMe) {
+            StpUtil.login(user.getId());
+        } else {
+            StpUtil.login(user.getId(), new SaLoginModel()
+                    .setIsLastingCookie(false)        // 是否为持久Cookie（临时Cookie在浏览器关闭时会自动删除，持久Cookie在重新打开后依然存在）
+                    .setToken(UUID.randomUUID().toString()) // 预定此次登录的生成的Token
+                    .setIsWriteHeader(false));              // 是否在登录后将 Token 写入到响应头);
+        }
         //设置token，返回给前端
         SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
         user.setToken(tokenInfo.getTokenValue());
@@ -236,6 +247,39 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return this.getLoginUserVO(user);
     }
 
+
+    @Override
+    public Boolean restPassword(String email, String userPassword, String checkPassword, String checkCode, String checkCodeKey) {
+        // 1. 校验
+        if (StringUtils.isAnyBlank(email, userPassword, checkPassword, checkCode, checkCodeKey)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
+        }
+
+        if (!checkCode.equals(redisUtils.get(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
+            log.error("checkCodeKey:{}", checkCodeKey);
+            redisUtils.delete(RedisKeyConstant.REDIS_KEY_CHECK_CODE + checkCodeKey);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片验证码错误");
+        }
+
+        if (userPassword.length() < 8 || checkPassword.length() < 8 || checkPassword.length() > 32 || userPassword.length() > 32) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
+        }
+        // 密码和校验密码相同
+        if (!userPassword.equals(checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
+        }
+        //检测是合法邮箱
+        String validPattern = "^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((\\.[a-zA-Z0-9_-]{2,3}){1,2})$";
+        Matcher matcher = Pattern.compile(validPattern).matcher(email);
+        if (!matcher.find()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "非法邮箱");
+        }
+        // 更新密码
+        UpdateWrapper<User> userUpdateWrapper = new UpdateWrapper<>();
+        userUpdateWrapper.eq("email", email);
+        userUpdateWrapper.set("userPassword", DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes()));
+        return this.update(userUpdateWrapper);
+    }
 
 
     @Override
