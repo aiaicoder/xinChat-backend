@@ -100,8 +100,8 @@ AI:
 
 yuapi:
   client:
-    access-key: oollukkkqgjrd1b7a7ua6dhz09119kv1
-    secret-key: 5ec3a1as8w7dt7c0634ee6eutcr1dce6
+    access-key: xxxx
+    secret-key: xxxx
 
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
