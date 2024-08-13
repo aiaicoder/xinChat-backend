@@ -36,7 +36,7 @@
     <select id="selectMyJoinGroup" resultType="com.xin.xinChat.model.entity.UserContact">
         select c.* , g.groupName contactName from userContact c
         inner join groupInfo g on c.contactId = g.groupId
-        where c.userId = #{userId} and c.contactType = #{contactType} and c.isDelete = 0
+        where c.userId = #{userId} and c.contactType = #{contactType}
         and g.groupOwnerId != #{userId}
         <if test="status != null and status.length > 0">
             AND c.status IN

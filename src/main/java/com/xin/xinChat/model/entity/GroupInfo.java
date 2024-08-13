@@ -79,6 +79,12 @@ public class GroupInfo implements Serializable {
     @TableField(exist = false)
     private String ownerName;
 
+    /**
+     * 群聊状态
+     */
+    @TableField(exist = false)
+    private Integer contactStatus;
+
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

@@ -73,7 +73,7 @@ public class FileController {
     @PostMapping("/upload")
     @SaCheckLogin
     @ApiOperation("上传头像")
-    public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile,
+    public BaseResponse<String> uploadAvatar(@RequestPart("file") MultipartFile multipartFile,
             UploadFileRequest uploadFileRequest) {
         String biz = uploadFileRequest.getBiz();
         FileUploadBizEnum fileUploadBizEnum = FileUploadBizEnum.getEnumByValue(biz);

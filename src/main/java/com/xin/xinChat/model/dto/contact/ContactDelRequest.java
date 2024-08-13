@@ -9,6 +9,5 @@ import lombok.Data;
  */
 @Data
 public class ContactDelRequest {
-    private String userId;
     private String contactId;
 }

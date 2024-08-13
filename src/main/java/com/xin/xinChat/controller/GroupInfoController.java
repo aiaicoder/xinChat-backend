@@ -149,6 +149,7 @@ public class GroupInfoController {
         return ResultUtils.success("操作成功");
     }
 
+
     @PostMapping("/leaveGroup")
     @ApiOperation("退出群聊")
     @SaCheckLogin
@@ -186,7 +187,8 @@ public class GroupInfoController {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "查找群组不存在或你不在群聊");
         }
         GroupInfo groupInfo = groupinfoService.getById(groupId);
-        if (groupInfo == null || groupInfo.getStatus().equals(GroupInfoEnum.NORMAL.getStatus())){
+        groupInfo.setContactStatus(userContact.getStatus());
+        if (groupInfo == null || !groupInfo.getStatus().equals(GroupInfoEnum.NORMAL.getStatus())){
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "群组不存在或已解散");
         }
         return groupInfo;

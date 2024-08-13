@@ -14,7 +14,6 @@ import com.xin.xinChat.model.dto.apply.ApplyDealRequest;
 import com.xin.xinChat.model.dto.apply.ApplyQueryRequest;
 import com.xin.xinChat.model.dto.contact.ContactDelRequest;
 import com.xin.xinChat.model.dto.contact.LoadUserContactRequest;
-import com.xin.xinChat.model.dto.contact.UserInfoRequest;
 import com.xin.xinChat.model.dto.search.UserSearchRequest;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.entity.UserContact;
@@ -29,10 +28,8 @@ import com.xin.xinChat.service.UserService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -153,22 +150,18 @@ public class UserContactController {
     /**
      * 展示部分信息，不一定是好友
      *
-     * @param userInfoRequest
+     * @param contactId
      * @return
      */
-    @PostMapping("/getContactInfo")
+    @GetMapping("/getContactInfo")
     @SaCheckLogin
-    public BaseResponse<UserVO> getContactInfo(@RequestBody UserInfoRequest userInfoRequest) {
-        if (userInfoRequest == null) {
+    public BaseResponse<UserVO> getContactInfo(@NotNull String contactId) {
+        if (StringUtils.isBlank(contactId)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
         }
-        String userId = userInfoRequest.getUserId();
-        String contactId = userInfoRequest.getContactId();
-        if (StringUtils.isBlank(userId) || StringUtils.isBlank(contactId)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
-        }
-        boolean oneSelf = userService.isOneSelf(userId);
-        if (oneSelf) {
+        User loginUser = userService.getLoginUser();
+        String userId = loginUser.getId();
+        if (userId.equals(contactId)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
         }
         //获取好友信息
@@ -195,22 +188,18 @@ public class UserContactController {
     /**
      * 查看更加详细信息，但是必须是好友
      *
-     * @param userInfoRequest
+     * @param contactId
      * @return
      */
-    @PostMapping("/getContactUserInfo")
+    @GetMapping("/getContactUserInfo")
     @SaCheckLogin
-    public BaseResponse<UserVO> getContactUserInfo(@RequestBody UserInfoRequest userInfoRequest) {
-        if (userInfoRequest == null) {
+    public BaseResponse<UserVO> getContactUserInfo(@NotNull String contactId) {
+        if (StringUtils.isBlank(contactId)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
         }
-        String userId = userInfoRequest.getUserId();
-        String contactId = userInfoRequest.getContactId();
+        User loginUser = userService.getLoginUser();
+        String userId = loginUser.getId();
         if (StringUtils.isBlank(userId) || StringUtils.isBlank(contactId)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
-        }
-        boolean oneSelf = userService.isOneSelf(userId);
-        if (oneSelf) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
         }
         QueryWrapper<UserContact> queryWrapper = new QueryWrapper<>();
@@ -246,14 +235,14 @@ public class UserContactController {
         if (contactDelRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
         }
-        String userId = contactDelRequest.getUserId();
+        User loginUser = userService.getLoginUser();
+        String userId = loginUser.getId();
         String contactId = contactDelRequest.getContactId();
         if (StringUtils.isBlank(userId) || StringUtils.isBlank(contactId)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
         }
-        boolean oneSelf = userService.isOneSelf(userId);
-        if (oneSelf) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
+        if (userId.equals(contactId)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "自己不可以删除自己");
         }
         boolean b = userContactService.delContact(userId, contactId, UserContactStatusEnum.DEL.getStatus());
         return ResultUtils.success(b);
@@ -271,14 +260,14 @@ public class UserContactController {
         if (contactDelRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
         }
-        String userId = contactDelRequest.getUserId();
+        User loginUser = userService.getLoginUser();
+        String userId = loginUser.getId();
         String contactId = contactDelRequest.getContactId();
-        if (StringUtils.isBlank(userId) || StringUtils.isBlank(contactId)) {
+        if (StringUtils.isBlank(contactId)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
         }
-        boolean oneSelf = userService.isOneSelf(userId);
-        if (!oneSelf) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无权限");
+        if (userId.equals(contactId)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "自己不可以拉黑自己");
         }
         boolean b = userContactService.delContact(userId, contactId, UserContactStatusEnum.BLACKLIST.getStatus());
         return ResultUtils.success(b);
