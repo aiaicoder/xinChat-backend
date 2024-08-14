@@ -149,7 +149,7 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
             }
         }else {
             GroupInfo oldGroupInfo = this.getById(groupId);
-            if (!oldGroupInfo.getGroupOwnerId().equals(groupId)){
+            if (!oldGroupInfo.getGroupOwnerId().equals(groupInfo.getGroupOwnerId())) {
                 throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
             }
             GroupInfo newGroupInfo = new GroupInfo();

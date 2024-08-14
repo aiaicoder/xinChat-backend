@@ -78,6 +78,7 @@ public class GroupInfoController {
         User loginUser = userService.getLoginUser();
         QueryWrapper<GroupInfo> groupInfoQueryWrapper = new QueryWrapper<>();
         groupInfoQueryWrapper.eq("groupOwnerId", loginUser.getId());
+        groupInfoQueryWrapper.eq("status", GroupInfoEnum.NORMAL.getStatus());
         groupInfoQueryWrapper.orderByDesc("createTime");
         return ResultUtils.success(groupinfoService.list(groupInfoQueryWrapper));
     }
@@ -95,6 +96,7 @@ public class GroupInfoController {
         GroupInfo groupInfo = getDetailGroupInfo(loginUser, groupId);
         QueryWrapper<UserContact> groupInfoQueryWrapper = new QueryWrapper<>();
         groupInfoQueryWrapper.eq("contactId", groupId);
+        groupInfoQueryWrapper.eq("status", GroupInfoEnum.NORMAL.getStatus());
         long count = userContactService.count(groupInfoQueryWrapper);
         groupInfo.setMemberCount(count);
         return ResultUtils.success(groupInfo);
