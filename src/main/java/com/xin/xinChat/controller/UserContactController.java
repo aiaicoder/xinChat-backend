@@ -75,6 +75,7 @@ public class UserContactController {
     }
 
     @PostMapping("/applyAdd")
+    @ApiOperation("发送申请")
     @SaCheckLogin
     public BaseResponse<Integer> applyAdd(@RequestBody ApplyAddRequest applyAddRequest) {
         if (applyAddRequest == null) {
@@ -90,6 +91,7 @@ public class UserContactController {
     }
 
     @PostMapping("/loadApplyAdd")
+    @ApiOperation("加载申请")
     @SaCheckLogin
     public BaseResponse<Page<UserContactApply>> loadApplyAdd(@RequestBody ApplyQueryRequest applyAddRequest) {
         int pageSize = applyAddRequest.getPageSize();

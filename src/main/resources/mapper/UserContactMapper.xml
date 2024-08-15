@@ -20,7 +20,7 @@
 
 
     <select id="selectUserFriend" resultType="com.xin.xinChat.model.entity.UserContact">
-        SELECT c.*, u.userName AS contactName, u.sex
+        SELECT c.*, u.userName AS contactName,u.userAvatar as avatar , u.sex
         FROM userContact c
         INNER JOIN user u ON c.contactId = u.id
         WHERE c.userId = #{userId}
@@ -34,7 +34,7 @@
     </select>
 
     <select id="selectMyJoinGroup" resultType="com.xin.xinChat.model.entity.UserContact">
-        select c.* , g.groupName contactName from userContact c
+        select c.* , g.groupName as contactName,g.groupAvatar as avatar from userContact c
         inner join groupInfo g on c.contactId = g.groupId
         where c.userId = #{userId} and c.contactType = #{contactType}
         and g.groupOwnerId != #{userId}

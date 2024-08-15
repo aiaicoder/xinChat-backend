@@ -58,6 +58,9 @@ public class UserContact implements Serializable {
     @TableField(exist = false)
     private Integer sex;
 
+    @TableField(exist = false)
+    private String avatar;
+
 
 
     @TableField(exist = false)

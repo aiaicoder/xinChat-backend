@@ -37,7 +37,7 @@ public class UserUpdateMyRequest implements Serializable {
     /**
      * 用户地区编号
      */
-    private Integer areaCode;
+    private String areaCode;
 
     /**
      * 用户地区
