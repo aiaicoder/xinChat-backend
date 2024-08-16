@@ -12,7 +12,7 @@ public class UpdatePasswordRequest {
     /**
      * 新密码
      */
-    private String userPassword;
+    private String password;
 
     /**
      * 校验密码

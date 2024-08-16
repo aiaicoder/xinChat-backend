@@ -71,6 +71,10 @@ public class UserContactApply implements Serializable {
     @TableField(exist = false)
     private String statusName;
 
+
+    @TableField(exist = false)
+    private String avatar;
+
     public String getStatusName() {
         UserContactApplyStatusEnum enumByStatus = UserContactApplyStatusEnum.getEnumByStatus(status);
         return enumByStatus != null ? enumByStatus.getDesc() : null;

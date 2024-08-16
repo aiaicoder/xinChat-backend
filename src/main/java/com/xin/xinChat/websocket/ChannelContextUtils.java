@@ -118,13 +118,13 @@ public class ChannelContextUtils {
         //添加上自己，是为了拿到别人给自己发送的消息
         groupList.add(userId);
         QueryWrapper<ChatMessage> chatMessageQueryWrapper = new QueryWrapper<>();
+        long lagTime = System.currentTimeMillis() - THREE_DAYS_MILLIS;
         //判断是否三天都没有上线
-        if (sourceLastOffTime != null && System.currentTimeMillis() - THREE_DAYS_MILLIS > sourceLastOffTime){
+        if (sourceLastOffTime != null && lagTime > sourceLastOffTime){
             lastOffTime = System.currentTimeMillis() - THREE_DAYS_MILLIS;
             chatMessageQueryWrapper.ge("sendTime", lastOffTime);
         }else {
-            chatMessageQueryWrapper.le("sendTime", lastOffTime);
-            chatMessageQueryWrapper.ge("sendTime", System.currentTimeMillis() - THREE_DAYS_MILLIS);
+            chatMessageQueryWrapper.ge("sendTime", lagTime);
         }
         chatMessageQueryWrapper.in("contactId", groupList);
         List<ChatMessage> chatMessageList = chatMessageService.list(chatMessageQueryWrapper);

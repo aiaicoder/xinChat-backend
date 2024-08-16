@@ -40,7 +40,7 @@ public interface RedisKeyConstant {
     /**
      * 心跳时间
      */
-    Long REDIS_HEART_BEAT_TIME = 360L;
+    Long REDIS_HEART_BEAT_TIME = 10L;
 
     /**
      * 用户心跳

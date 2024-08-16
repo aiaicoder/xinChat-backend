@@ -249,7 +249,6 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
         if (userInfo == null){
             recallUser = userService.getById(recallId);
         }
-        recallUser = JSONUtil.toBean(userInfo, User.class);
         if (!recallId.equals(sendUserId) && contactEnum == UserContactEnum.GROUP){
             if (recallUser != null){
                 chatMessage.setMessageContent(String.format(MessageTypeEnum.RECALL_MESSAGE.getInitMessage(),"管理员\t" + recallUser.getUserName()));

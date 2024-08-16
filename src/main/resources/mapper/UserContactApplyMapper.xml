@@ -27,7 +27,11 @@
                CASE
                    WHEN a.contactType = 0 THEN u.userName
                    WHEN a.contactType = 1 THEN g.groupName
-                   END AS contactName
+                   END AS contactName,
+               CASE
+                   WHEN a.contactType = 0 THEN u.userAvatar
+                   WHEN a.contactType = 1 THEN g.groupAvatar
+                   END AS avatar
         FROM userContactApply a
                  LEFT JOIN user u ON u.id = a.applyUserId
                  LEFT JOIN groupInfo g ON a.contactId = g.groupId AND a.contactType = 1

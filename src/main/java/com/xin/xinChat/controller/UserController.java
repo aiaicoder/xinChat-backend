@@ -180,7 +180,7 @@ public class UserController {
     @PostMapping("/updatePassword")
     @SaCheckLogin
     public BaseResponse<String> updatePassword(@RequestBody UpdatePasswordRequest updatePasswordRequest) {
-        String userPassword = updatePasswordRequest.getUserPassword();
+        String userPassword = updatePasswordRequest.getPassword();
         String checkPassword = updatePasswordRequest.getCheckPassword();
         if (StringUtils.isBlank(userPassword) || StringUtils.isBlank(checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请输入新密码并确认密码");
@@ -259,13 +259,6 @@ public class UserController {
         return ResultUtils.success(userVoPage);
     }
 
-    @GetMapping("/get/test")
-    public BaseResponse<String> test() {
-        MessageSendDTO messageSendDTO = new MessageSendDTO();
-        messageSendDTO.setMessageContent("测试消息" + System.currentTimeMillis());
-        messageHandler.sendMessage(messageSendDTO);
-        return ResultUtils.success("测试成功");
-    }
 
 
 
