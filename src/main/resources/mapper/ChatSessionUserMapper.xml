@@ -25,7 +25,12 @@
                 WHEN SUBSTRING(u.contactId, 1, 1) = 'G'
                     THEN (SELECT COUNT(1) FROM userContact uc WHERE u.contactId = uc.contactId)
                 ELSE 0
-                END AS MemberCount
+                END AS memberCount,
+            CASE
+                WHEN SUBSTRING(u.contactId, 1, 1) = 'G'
+                    THEN (SELECT g.groupAvatar FROM groupInfo g WHERE u.contactId = g.groupId)
+                ELSE (SELECT us.userAvatar FROM user us WHERE us.id = u.contactId)
+                END AS avatar
         FROM
             ChatSessionUser u
                 LEFT JOIN

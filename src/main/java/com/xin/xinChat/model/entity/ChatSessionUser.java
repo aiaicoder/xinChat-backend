@@ -55,6 +55,10 @@ public class ChatSessionUser implements Serializable {
     @TableField(exist = false)
     private Integer memberCount;
 
+
+    @TableField(exist = false)
+    private String avatar;
+
     /**
      * 联系人类型，0：好友，1：群组
      */

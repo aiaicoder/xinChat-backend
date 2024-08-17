@@ -112,11 +112,11 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
         String messageContent = StringUtil.htmlEscape(chatMessage.getMessageContent());
         chatMessage.setMessageContent(messageContent);
         //更新会话信息
-        ChatSession chatSession = new ChatSession();
-        chatSession.setSessionId(sessionId);
-        if (UserContactEnum.GROUP == userContactEnum) {
-            chatSession.setLastMessage(loginUser.getUserName() + "：" + messageContent);
-        }
+            ChatSession chatSession = new ChatSession();
+            chatSession.setSessionId(sessionId);
+            if (UserContactEnum.GROUP == userContactEnum) {
+                chatSession.setLastMessage(loginUser.getUserName() + "：" + messageContent);
+            }
         chatSession.setLastReceiveTime(System.currentTimeMillis());
         chatSessionService.updateById(chatSession);
         //更新消息表
