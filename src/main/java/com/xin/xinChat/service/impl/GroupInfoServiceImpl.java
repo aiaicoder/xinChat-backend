@@ -105,8 +105,8 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
             userContact.setContactType(UserContactEnum.GROUP.getType());
             userContact.setUserId(groupOwnerId);
             boolean savaUserContact = userContactService.save(userContact);
-            //创建会话
-            String sessionId = StringUtil.getSessionIdGroup(groupOwnerId);
+            //创建会话  
+            String sessionId = StringUtil.getSessionIdGroup(groupIdStr);
             ChatSession chatSession = new ChatSession();
             chatSession.setSessionId(sessionId);
             chatSession.setLastMessage(MessageTypeEnum.GROUP_CREATE.getInitMessage());

@@ -282,14 +282,14 @@ public class ChannelContextUtils {
     public void addGroupContext(String groupId, String userId) {
         ChannelGroup groupChannel = GROUP_CHANNEL_CACHE.getIfPresent(groupId);
         Channel channel = USER_CHANNEL_CACHE.getIfPresent(userId);
+        if (channel == null) {
+            log.error("channel is null,无法添加");
+            return;
+        }
         if (groupChannel == null) {
             //使用GlobalEventExecutor.INSTANCE意味着这个ChannelGroup的操作将在全局的事件执行器上执行
             groupChannel = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
             GROUP_CHANNEL_CACHE.put(groupId, groupChannel);
-        }
-        if (channel == null) {
-            log.error("channel is null,无法添加");
-            return;
         }
         groupChannel.add(channel);
     }
@@ -314,4 +314,6 @@ public class ChannelContextUtils {
         updataUser.setLastOffTime(System.currentTimeMillis());
         userService.updateById(updataUser);
     }
+
+
 }
