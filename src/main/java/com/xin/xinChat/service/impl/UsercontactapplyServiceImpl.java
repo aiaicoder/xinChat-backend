@@ -78,6 +78,9 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
     @Resource
     private SysSettingUtil sysSettingUtil;
 
+    @Resource
+    private UserContactMapper userContactMapper;
+
 
 
 
@@ -97,7 +100,7 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
                 userSearchVo.setNickName(user.getUserName());
                 userSearchVo.setSex(user.getSex() == 1 ? "男" : "女");
                 userSearchVo.setAreaName(user.getAreaName());
-                System.out.println(userSearchVo);
+                userSearchVo.setAvatar(user.getUserAvatar());
                 break;
             case GROUP:
                 GroupInfo groupInfo = groupInfoService.getById(contactId);
@@ -105,6 +108,7 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
                     return null;
                 }
                 userSearchVo.setNickName(groupInfo.getGroupName());
+                userSearchVo.setAvatar(groupInfo.getGroupAvatar());
                 break;
         }
         userSearchVo.setContactId(contactId);
@@ -322,7 +326,8 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
             userContactList.add(userContactReceive);
         }
         //批量插入
-        userContactService.saveBatch(userContactList);
+        userContactMapper.insertOrUpdateBatch(userContactList);
+
         //如果是好友，接受人也添加申请人为好友 添加缓存
         if (contactType.equals(UserContactEnum.USER.getType())){
             redisUtils.addUserContact(receiveUserId, applyUserId, appConfig.getTokenTimeout(), TimeUnit.SECONDS);

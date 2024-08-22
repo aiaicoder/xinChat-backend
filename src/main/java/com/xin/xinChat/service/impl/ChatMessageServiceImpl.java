@@ -72,7 +72,6 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
 
     @Override
     public MessageSendDTO saveMessage(User loginUser,ChatMessage chatMessage) {
-
         String sendUserId = loginUser.getId();
         String contactId = chatMessage.getContactId();
         //判断不是机器人回复
@@ -112,12 +111,13 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
         String messageContent = StringUtil.htmlEscape(chatMessage.getMessageContent());
         chatMessage.setMessageContent(messageContent);
         //更新会话信息
-            ChatSession chatSession = new ChatSession();
-            chatSession.setSessionId(sessionId);
-            if (UserContactEnum.GROUP == userContactEnum) {
-                chatSession.setLastMessage(loginUser.getUserName() + "：" + messageContent);
-            }
+        ChatSession chatSession = new ChatSession();
+        chatSession.setSessionId(sessionId);
+        if (UserContactEnum.GROUP == userContactEnum) {
+            chatSession.setLastMessage(loginUser.getUserName() + "：" + messageContent);
+        }
         chatSession.setLastReceiveTime(System.currentTimeMillis());
+        chatSession.setLastMessage(messageContent);
         chatSessionService.updateById(chatSession);
         //更新消息表
         chatMessage.setContactType(userContactEnum.getType());

@@ -11,7 +11,7 @@ public enum MessageStatusEnum {
     RECALLED(2, "已撤回");
 
 
-    private int status;
+    private Integer status;
     private String desc;
 
     MessageStatusEnum(int status, String desc) {
@@ -28,7 +28,7 @@ public enum MessageStatusEnum {
         return null;
     }
 
-    public int getStatus() {
+    public Integer getStatus() {
         return status;
     }
 

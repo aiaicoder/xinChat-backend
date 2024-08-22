@@ -29,6 +29,8 @@ public class UserSearchVo implements Serializable {
     private String sex;
     // 地区
     private String areaName;
+    //头像
+    private String avatar;
 
     public String getStatusName(){
         UserContactStatusEnum userContactStatusEnum = UserContactStatusEnum.getEnumByStatus(status);

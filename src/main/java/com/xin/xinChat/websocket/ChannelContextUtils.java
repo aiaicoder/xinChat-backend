@@ -129,7 +129,7 @@ public class ChannelContextUtils {
         chatMessageQueryWrapper.in("contactId", groupList);
         List<ChatMessage> chatMessageList = chatMessageService.list(chatMessageQueryWrapper);
         chatMessageList.forEach(chatMessage -> {
-            if (chatMessage.getStatus().equals(MessageStatusEnum.RECALLED.getStatus())){
+            if (MessageStatusEnum.RECALLED.getStatus().equals(chatMessage.getStatus()) ){
                 chatMessageService.showRecallMessage(userId,chatMessage);
             }
         });

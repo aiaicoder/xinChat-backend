@@ -411,7 +411,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String contactName = sysSetting.getRobotNickName();
         String sendMessage = sysSetting.getRobotWelcome();
         //转换html标志，防止html注入
-        sendMessage = HtmlUtils.htmlEscape(sendMessage);
+        sendMessage = StringUtil.htmlEscape(sendMessage);
         //添加机器人为好友
         UserContact userContact = new UserContact();
         userContact.setUserId(userId);

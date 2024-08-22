@@ -45,4 +45,17 @@
             </foreach>
         </if>
     </select>
+
+    <insert id="insertOrUpdateBatch">
+        INSERT INTO userContact (userId, contactId, contactType,status)
+        VALUES
+        <foreach collection="userContactList" item="item" index="index" separator=",">
+            (#{item.userId},#{item.contactId}, #{item.contactType},#{item.status})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        status = VALUES(status),
+        contactType = VALUES(contactType)
+    </insert>
+
+
 </mapper>

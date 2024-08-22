@@ -3,6 +3,7 @@ package com.xin.xinChat.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xin.xinChat.model.entity.ChatSessionUser;
 import com.xin.xinChat.model.entity.UserContact;
 import org.apache.ibatis.annotations.Param;
 
@@ -26,6 +27,8 @@ public interface UserContactMapper extends BaseMapper<UserContact> {
                                          @Param("contactType") Integer contactType,
                                          @Param("status") Integer[] status
     );
+
+    void insertOrUpdateBatch(@Param("userContactList") List<UserContact> userContactList);
 
 
 
