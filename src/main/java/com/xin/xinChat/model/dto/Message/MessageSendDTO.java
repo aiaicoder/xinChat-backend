@@ -20,7 +20,7 @@ public class MessageSendDTO<T> implements Serializable {
     //会话ID
     private String sessionId;
     //发送人Id
-    private String senderUserId;
+    private String sendUserId;
     //发送人名称
     private String sendUserName;
     //联系人Id

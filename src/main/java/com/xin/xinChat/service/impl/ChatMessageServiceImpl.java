@@ -33,6 +33,7 @@ import com.xin.xinChat.utils.SysSettingUtil;
 import com.xin.xinChat.websocket.MessageHandler;
 import jodd.util.ArraysUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -68,6 +69,10 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
 
     @Resource
     private AiManager aiManager;
+
+    @Resource
+    @Lazy
+    private RobotService robotService;
 
 
     @Override
@@ -132,14 +137,8 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
             User robotUser = new User();
             robotUser.setId(sysSetting.getRobotUid());
             robotUser.setUserName(sysSetting.getRobotNickName());
-            //机器人回复的消息
-            ChatMessage chatMessageRobot = new ChatMessage();
-            chatMessageRobot.setContactId(sendUserId);
-            //这里可以对接ai实现聊天
-            String aiAnswer = aiManager.doChat(sendUserId, messageContent);
-            chatMessageRobot.setMessageContent(aiAnswer);
-            chatMessageRobot.setMessageType(MessageTypeEnum.CHAT.getType());
-            saveMessage(robotUser,chatMessageRobot);
+//            //机器人回复的消息
+            robotService.handleRobotReply(robotUser,sendUserId,messageContent);
         } else {
             messageHandler.sendMessage(messageSendDTO);
         }
@@ -208,7 +207,7 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
         //发送消息通知
         MessageSendDTO messageSendDTO = new MessageSendDTO();
         messageSendDTO.setExtendData(userService.getUserVO(loginUser));
-        messageSendDTO.setSenderUserId(userId);
+        messageSendDTO.setSendUserId(userId);
         messageSendDTO.setContactId(chatMessage.getContactId());
         messageSendDTO.setMessageId(messageId);
         messageSendDTO.setMessageType(MessageTypeEnum.RECALL_MESSAGE.getType());

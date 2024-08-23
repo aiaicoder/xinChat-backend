@@ -215,12 +215,13 @@ public class ChannelContextUtils {
             //如果是撤回消息两边看到的不一样
             Object extendData = messageSendDTO.getExtendData();
             UserVO userInfo= BeanUtil.copyProperties(extendData, UserVO.class);
-            messageSendDTO.setContactId(messageSendDTO.getSenderUserId());
+            messageSendDTO.setContactId(messageSendDTO.getSendUserId());
             messageSendDTO.setContactName(messageSendDTO.getSendUserName());
             messageSendDTO.setMessageContent(String.format(MessageTypeEnum.RECALL_MESSAGE.getInitMessage(),userInfo.getUserName()));
         } else {
-            messageSendDTO.setContactId(messageSendDTO.getSenderUserId());
+            messageSendDTO.setContactId(messageSendDTO.getSendUserId());
             messageSendDTO.setContactName(messageSendDTO.getSendUserName());
+            log.info("消息{}",messageSendDTO);
         }
         //发送消息
         userChanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(messageSendDTO)));

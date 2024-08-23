@@ -68,7 +68,7 @@ public class ChatSessionUserServiceImpl extends ServiceImpl<ChatSessionUserMappe
                 messageSendDTO.setMessageType(MessageTypeEnum.CONTACT_NAME_UPDATE.getType());
                 messageSendDTO.setContactId(userContact.getUserId());
                 messageSendDTO.setExtendData(contactName);
-                messageSendDTO.setSenderUserId(contactId);
+                messageSendDTO.setSendUserId(contactId);
                 messageSendDTO.setSendUserName(contactName);
                 messageHandler.sendMessage(messageSendDTO);
             }
