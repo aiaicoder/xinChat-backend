@@ -24,10 +24,13 @@ public class SysSettingDTO implements Serializable {
      * 最大群聊人数
      */
     private Integer maxGroupMemberCount = 500;
+
+
     /**
      * 最大图片大小
      */
-    private Integer maxImageSize = 12;
+    private Integer maxImageSize = 6;
+
     /**
      * 用户图片大小
      */
@@ -37,22 +40,27 @@ public class SysSettingDTO implements Serializable {
      * 最大视频大小
      */
     private Integer maxVideoSize = 20;
+
     /**
      * 最大文件大小
      */
-    private Integer maxFileSize = 50;
+    private Integer maxFileSize = 30;
+
     /**
      * 机器人uid
      */
     private String robotUid = UserConstant.ROBOT_UID;
+
     /**
      * 机器人头像
      */
-    private String robotAvatar ="";
+    private String robotAvatar ="https://img2.baidu.com/it/u=3388033680,62498000&fm=253&fmt=auto&app=138&f=JPEG?w=200&h=200";
+
     /**
      * 机器人昵称
      */
     private String robotNickName ="XinChat";
+
     /**
      * 机器人欢迎语
      */
