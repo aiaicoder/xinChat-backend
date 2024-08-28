@@ -67,8 +67,7 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
     @Resource
     private SysSettingUtil sysSettingUtil;
 
-    @Resource
-    private AiManager aiManager;
+
 
     @Resource
     @Lazy
@@ -148,10 +147,9 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
     @Override
     public void saveFile(ChatMessage chatMessage, Long messageId, String fileUrl,String filePath) {
         chatMessage.setStatus(MessageStatusEnum.SENDED.getStatus());
-        chatMessage.setFilePath(filePath);
+        chatMessage.setFilePath(fileUrl);
         UpdateWrapper<ChatMessage> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("status", MessageStatusEnum.SENDING.getStatus());
-
         update(chatMessage, updateWrapper);
         //发送消息
         MessageSendDTO messageSendDTO = new MessageSendDTO();

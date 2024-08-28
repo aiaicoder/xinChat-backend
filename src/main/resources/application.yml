@@ -40,6 +40,9 @@ spring:
     host: 10.101.100.2
     port: 5672
     virtual-host: xinchat
+    listener:
+      direct:
+        acknowledge-mode: manual
   # 文件上传
   servlet:
     multipart:

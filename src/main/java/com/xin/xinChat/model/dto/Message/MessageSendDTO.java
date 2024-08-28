@@ -48,6 +48,7 @@ public class MessageSendDTO<T> implements Serializable {
     private String fileName;
     private Integer fileType;
 
+
     public String getLastMessage() {
         if (StringUtils.isEmpty(lastMessage)){
             return messageContent;

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 import static com.xin.xinChat.constant.MqConstant.MESSAGE_EXCHANGE;
+import static com.xin.xinChat.constant.MqConstant.MESSAGE_QUEUE;
 
 /**
  * @author <a href="https://github.com/aiaicoder">  小新
@@ -37,24 +38,35 @@ public class MessageHandler {
     private ChannelContextUtils channelContextUtils;
 
     @RabbitListener(bindings = @QueueBinding(
-            value = @Queue(), //切记： 此处无需设置队列名称，否在得话，多个消费者只有一个消费者能消费数据。其它消费者无法消费数据。
-            exchange = @Exchange(value = MESSAGE_EXCHANGE,type = ExchangeTypes.FANOUT)))
+            value = @Queue(name = MESSAGE_QUEUE, durable = "true"),
+            exchange = @Exchange(value = MESSAGE_EXCHANGE, type = ExchangeTypes.FANOUT)),ackMode = "MANUAL")
     @SneakyThrows
     private void receiveMessage(MessageSendDTO  messageSendDTO, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
-        if (messageSendDTO == null){
-            channel.basicNack(deliveryTag, false, false);
-        }
-        String jsonStr = JSONUtil.toJsonStr(messageSendDTO);
-        log.info("接收到消息：{}",jsonStr);
-        //发送消息
-        channelContextUtils.sendMes(messageSendDTO);
-        channel.basicAck(deliveryTag, false);
-    }
 
+        if (messageSendDTO == null) {
+            log.error("消息为空");
+            channel.basicNack(deliveryTag, false, false);
+            return;
+        }
+
+        String jsonStr = JSONUtil.toJsonStr(messageSendDTO);
+        log.info("接收到消息：{}, 消息Id: {}", jsonStr, deliveryTag);
+
+        try {
+            // 发送消息
+            channelContextUtils.sendMes(messageSendDTO);
+            channel.basicAck(deliveryTag, false); // 确认消息
+        } catch (Exception e) {
+            log.error("处理消息失败", e);
+            channel.basicNack(deliveryTag, false, false); // 拒绝消息
+        }
+    }
 
 
 
     public void sendMessage(MessageSendDTO messageSendDTO) {
         rabbitTemplate.convertAndSend(MESSAGE_EXCHANGE,"",messageSendDTO);
     }
+
+
 }

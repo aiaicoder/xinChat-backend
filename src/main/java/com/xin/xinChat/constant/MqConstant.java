@@ -7,4 +7,6 @@ package com.xin.xinChat.constant;
  */
 public interface MqConstant {
     String MESSAGE_EXCHANGE = "messageExchange";
+
+    String MESSAGE_QUEUE = "messageQueue";
 }
