@@ -18,7 +18,7 @@ public interface ChatMessageService extends IService<ChatMessage> {
 
     void saveFile(ChatMessage chatMessage, Long messageId, String fileUrl,String filePath);
 
-    void checkFileAuth(User loginUser, Long fileId);
+    void checkFileAuth(User loginUser, ChatMessage chatMessage);
 
     void recallMessage(Long messageId);
 

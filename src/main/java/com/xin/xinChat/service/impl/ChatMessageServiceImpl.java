@@ -162,8 +162,7 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
     }
 
     @Override
-    public void checkFileAuth(User loginUser,Long messageId) {
-        ChatMessage chatMessage = getById(messageId);
+    public void checkFileAuth(User loginUser,ChatMessage chatMessage) {
         String userId = loginUser.getId();
         if (chatMessage == null){
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
@@ -171,7 +170,7 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
         String contactId = chatMessage.getContactId();
         UserContactEnum userContactEnum = UserContactEnum.getEnumByPrefix(contactId);
         //判断当前用户是否是对方的消息发送方
-        if (UserContactEnum.USER == userContactEnum && !userId.equals(contactId)){
+        if (UserContactEnum.USER == userContactEnum && !userId.equals(contactId) && !userId.equals(chatMessage.getSendUserId())){
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         //如果是群聊消息判断当前用户是否在群中

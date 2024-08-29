@@ -21,7 +21,6 @@ import com.xin.xinChat.model.entity.ChatMessage;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.enums.FileUploadBizEnum;
 import com.xin.xinChat.service.ChatMessageService;
-import com.xin.xinChat.service.ChatSessionUserService;
 import com.xin.xinChat.service.UserService;
 import com.xin.xinChat.utils.DateUtils;
 import com.xin.xinChat.utils.SysSettingUtil;
@@ -31,6 +30,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -184,9 +184,10 @@ public class ChatController {
         User loginUser = userService.getLoginUser();
         String filePath = chatMessage.getFilePath();
         String fileName = chatMessage.getFileName();
+        filePath = filePath.replace(FileConstant.COS_HOST,"");
         COSObjectInputStream cosObjectInput = null;
         try {
-            chatMessageService.checkFileAuth(loginUser, messageId);
+            chatMessageService.checkFileAuth(loginUser, chatMessage);
             COSObject cosObject = cosManager.getObject(filePath);
             cosObjectInput = cosObject.getObjectContent();
             // 处理下载到的流
@@ -198,7 +199,7 @@ public class ChatController {
             response.getOutputStream().write(bytes);
             response.getOutputStream().flush();
         } catch (Exception e) {
-            log.error("file download error, filepath = " + messageId, e);
+            log.error("file download error, filepath = " +  filePath, e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "下载失败");
         } finally {
             if (cosObjectInput != null) {
