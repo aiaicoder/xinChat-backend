@@ -132,19 +132,13 @@ public class RedisUtils {
         stringRedisTemplate.opsForValue().set(REDIS_USER_INFO_KEY + userId, userInfo, expireTime, timeUnit);
     }
 
-
-    /**
-     * 移除用户信息
-     */
-    public void removeUserInfo(String userId) {
-        stringRedisTemplate.delete(REDIS_USER_INFO_KEY + userId);
-    }
-
     /**
      * 获取用户信息
      */
     public String getUserInfo(String userId) {
         return stringRedisTemplate.opsForValue().get(REDIS_USER_INFO_KEY + userId);
     }
+
+
 
 }

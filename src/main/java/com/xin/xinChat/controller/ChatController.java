@@ -2,6 +2,7 @@ package com.xin.xinChat.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import com.qcloud.cos.model.COSObject;
 import com.qcloud.cos.model.COSObjectInputStream;
 import com.qcloud.cos.utils.IOUtils;
@@ -23,6 +24,7 @@ import com.xin.xinChat.model.enums.FileUploadBizEnum;
 import com.xin.xinChat.service.ChatMessageService;
 import com.xin.xinChat.service.UserService;
 import com.xin.xinChat.utils.DateUtils;
+import com.xin.xinChat.utils.RedisUtils;
 import com.xin.xinChat.utils.SysSettingUtil;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +39,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.xin.xinChat.constant.FileConstant.FILE_SIZE;
+import static com.xin.xinChat.constant.RedisKeyConstant.REDIS_USER_UPLOAD_FILE_EXPIRE_TIME;
+import static com.xin.xinChat.constant.RedisKeyConstant.REDIS_USER_UPLOAD_FILE_KEY;
 
 /**
  * @author <a href="https://github.com/aiaicoder">  小新
@@ -60,6 +67,9 @@ public class ChatController {
 
     @Resource
     private SysSettingUtil sysSettingUtil;
+
+    @Resource
+    private RedisUtils redisUtils;
 
 
     @Resource
@@ -117,22 +127,47 @@ public class ChatController {
      */
     @PostMapping("/msg/upload")
     @ApiOperation("发送文件")
-    public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile,
-                                           UploadFileRequest uploadFileRequest) {
+    public BaseResponse<Map<String, String>> uploadFile(@RequestPart("file") MultipartFile multipartFile,
+                                                        UploadFileRequest uploadFileRequest) {
+        User loginUser = userService.getLoginUser();
         String biz = uploadFileRequest.getBiz();
         Long messageId = uploadFileRequest.getMessageId();
+        //判断消息是否存在
+        ChatMessage chatMessage = chatMessageService.getById(messageId);
         FileUploadBizEnum fileUploadBizEnum = FileUploadBizEnum.getEnumByValue(biz);
+        //获取文件类型后缀
+        String fileSuffix = FileUtil.getSuffix(multipartFile.getOriginalFilename());
+        Map<String, String> result = new HashMap<>();
         if (fileUploadBizEnum == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        //校验文件md5值防止重复上传
+        String md5;
+        try {
+            md5 = DigestUtil.md5Hex(multipartFile.getBytes());
+            String fileUrl = redisUtils.get(REDIS_USER_UPLOAD_FILE_KEY + loginUser.getId() + ":" + md5);
+            //如果是上传的是视频那么会有视频的封面信息，通过逗号隔开
+            if (StringUtils.isNotBlank(fileUrl)) {
+                log.warn("文件重复上传");
+                if (Arrays.asList(FileConstant.VIDEO_FILE_EXTENSION).contains(fileSuffix)) {
+                    String[] split = fileUrl.split(",");
+                    result.put("fileUrl", split[0]);
+                    result.put("videoCoverUrl", split[1]);
+                    chatMessageService.saveFile(chatMessage, messageId, split[0], split[1]);
+                } else {
+                    result.put("fileUrl", fileUrl);
+                    chatMessageService.saveFile(chatMessage, messageId, fileUrl, null);
+                }
+                return ResultUtils.success(result);
+            }
+        } catch (IOException e) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "处理文件失败");
+        }
         //文件校验
         validFile(multipartFile, fileUploadBizEnum);
-        User loginUser = userService.getLoginUser();
         // 文件目录：根据业务、用户来划分
         String uuid = RandomStringUtils.randomAlphanumeric(8);
         String filename = uuid + "-" + multipartFile.getOriginalFilename();
-        //判断消息是否存在
-        ChatMessage chatMessage = chatMessageService.getById(messageId);
         if (chatMessage == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
@@ -152,8 +187,22 @@ public class ChatController {
             cosManager.putObject(filepath, file);
             // 返回可访问地址
             String fileUrl = FileConstant.COS_HOST + filepath;
-            chatMessageService.saveFile(chatMessage, messageId, fileUrl, filepath);
-            return ResultUtils.success(fileUrl);
+            String videCoverPath = null;
+            String videoCoverUrl = null;
+            //如何上传的是视频就获取封面并且返回
+            if (Arrays.asList(FileConstant.VIDEO_FILE_EXTENSION).contains(fileSuffix)) {
+                //将视频的filepath的后缀改为.jpg
+                videCoverPath = filepath.replaceAll("\\.[^.]+$", ".jpg");
+                videoCoverUrl = FileConstant.COS_HOST + cosManager.generateSnapshot(filepath, videCoverPath);
+                String fileUrlAndCoverUrl = fileUrl + "," + videoCoverUrl;
+                redisUtils.set(REDIS_USER_UPLOAD_FILE_KEY + loginUser.getId() + ":" + md5, fileUrlAndCoverUrl, REDIS_USER_UPLOAD_FILE_EXPIRE_TIME, TimeUnit.MINUTES);
+            }else {
+                redisUtils.set(REDIS_USER_UPLOAD_FILE_KEY + loginUser.getId() + ":" + md5, fileUrl, REDIS_USER_UPLOAD_FILE_EXPIRE_TIME, TimeUnit.MINUTES);
+            }
+            chatMessageService.saveFile(chatMessage, messageId, fileUrl, videoCoverUrl);
+            result.put("fileUrl", fileUrl);
+            result.put("videoCoverUrl", videoCoverUrl);
+            return ResultUtils.success(result);
         } catch (Exception e) {
             log.error("file upload error, filepath = " + filepath, e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");

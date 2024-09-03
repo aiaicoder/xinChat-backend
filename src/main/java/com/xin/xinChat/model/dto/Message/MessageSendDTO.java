@@ -48,9 +48,12 @@ public class MessageSendDTO<T> implements Serializable {
     private String fileName;
     private Integer fileType;
 
+    //视频封面
+    private String videoCoverUrl;
+
 
     public String getLastMessage() {
-        if (StringUtils.isEmpty(lastMessage)){
+        if (StringUtils.isEmpty(lastMessage)) {
             return messageContent;
         }
         return lastMessage;

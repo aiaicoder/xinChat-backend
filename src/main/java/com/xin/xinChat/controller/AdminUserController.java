@@ -67,11 +67,7 @@ public class AdminUserController {
     }
 
 
-    @GetMapping("/getSysSetting")
-    public BaseResponse<SysSettingDTO> getSysSetting() {
-        SysSettingDTO sysSettingDTO = sysSettingUtil.getSysSetting();
-        return ResultUtils.success(sysSettingDTO);
-    }
+
 
 
     /**

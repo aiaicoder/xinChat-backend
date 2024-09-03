@@ -13,7 +13,7 @@ import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.exception.ThrowUtils;
 import com.xin.xinChat.manager.RedisLimiterManager;
-import com.xin.xinChat.model.dto.Message.MessageSendDTO;
+import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.dto.user.*;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.vo.LoginUserVO;
@@ -21,8 +21,8 @@ import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.UserService;
 import com.xin.xinChat.utils.NetUtils;
 import com.xin.xinChat.utils.RedisUtils;
+import com.xin.xinChat.utils.SysSettingUtil;
 import com.xin.xinChat.websocket.ChannelContextUtils;
-import com.xin.xinChat.websocket.MessageHandler;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -62,15 +62,11 @@ public class UserController {
     private RedisLimiterManager redisLimiterManager;
 
     @Resource
-    private MessageHandler messageHandler;
-
-    @Resource
     private ChannelContextUtils channelContextUtils;
 
 
-
-
-
+    @Resource
+    private SysSettingUtil sysSettingUtil;
 
     @GetMapping("/checkCode")
     public BaseResponse<Map<String, String>> checkCode(HttpServletRequest request) {
@@ -260,7 +256,9 @@ public class UserController {
     }
 
 
-
-
-
+    @GetMapping("/getSysSetting")
+    public BaseResponse<SysSettingDTO> getSysSetting() {
+        SysSettingDTO sysSettingDTO = sysSettingUtil.getSysSetting();
+        return ResultUtils.success(sysSettingDTO);
+    }
 }

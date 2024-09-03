@@ -34,8 +34,8 @@ public interface RedisKeyConstant {
      */
     String REDIS_USER_INFO_KEY = "xinChat:user_info:";
 
-    String REDIS_AI_KEY = "xinChat:ai:";
 
+    String REDIS_AI_KEY = "xinChat:ai:";
 
     /**
      * 心跳时间
@@ -48,6 +48,13 @@ public interface RedisKeyConstant {
     String REDIS_USER_HEART_BEAT_KEY = "xinChat:user_heart_beat:";
 
     String LIMIT_KEY_PREFIX = "xinChat:checkCode:limit:";
+
+
+    //用户上传文件记录
+    String REDIS_USER_UPLOAD_FILE_KEY = "xinChat:user_upload_file:";
+
+    //30天的过期时间，分钟
+    Long REDIS_USER_UPLOAD_FILE_EXPIRE_TIME = 30L * 24 * 60;
 
 
 

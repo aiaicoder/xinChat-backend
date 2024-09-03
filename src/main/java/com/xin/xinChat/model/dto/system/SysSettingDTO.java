@@ -15,26 +15,11 @@ import java.io.Serializable;
 public class SysSettingDTO implements Serializable {
 
     private static final long serialVersionUID = 421543029156924860L;
-    /**
-     * 最大群聊数量
-     */
-    private Integer maxGroupCount = 5;
-
-    /**
-     * 最大群聊人数
-     */
-    private Integer maxGroupMemberCount = 500;
-
 
     /**
      * 最大图片大小
      */
-    private Integer maxImageSize = 6;
-
-    /**
-     * 用户图片大小
-     */
-    private Integer maxUserAvatarSize = 5;
+    private Integer maxImageSize = 5;
 
     /**
      * 最大视频大小
@@ -44,7 +29,23 @@ public class SysSettingDTO implements Serializable {
     /**
      * 最大文件大小
      */
-    private Integer maxFileSize = 30;
+    private Integer maxFileSize = 20;
+
+    /**
+     * 最大群聊数量
+     */
+    private Integer maxGroupCount = 5;
+
+    /**
+     * 用户图片大小
+     */
+    private Integer maxUserAvatarSize = 5;
+
+    /**
+     * 最大群聊人数
+     */
+    private Integer maxGroupMemberCount = 500;
+
 
     /**
      * 机器人uid

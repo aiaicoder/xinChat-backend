@@ -14,6 +14,9 @@ public interface FileConstant {
     String COS_HOST = "https://xinbo-1314980040.cos.ap-beijing.myqcloud.com";
 
 
+
+
+
     String[] IMAGE_FILE_EXTENSION = {"png", "jpg", "jpeg", "bmp", "webp", "gif","svg",};
 
     String[] VIDEO_FILE_EXTENSION = {"mp4", "avi", "wmv", "mov", "flv", "mkv", "rmvb"};

@@ -82,6 +82,11 @@ public class ChatMessage implements Serializable {
     private String filePath;
 
     /**
+     * 视频封面
+     */
+    private String videoCoverUrl;
+
+    /**
      * 撤回消息用户Id
      */
     private String recallId;

@@ -145,9 +145,10 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
     }
 
     @Override
-    public void saveFile(ChatMessage chatMessage, Long messageId, String fileUrl,String filePath) {
+    public void saveFile(ChatMessage chatMessage, Long messageId, String fileUrl,String videoCoverUrl) {
         chatMessage.setStatus(MessageStatusEnum.SENDED.getStatus());
         chatMessage.setFilePath(fileUrl);
+        chatMessage.setVideoCoverUrl(videoCoverUrl);
         UpdateWrapper<ChatMessage> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("status", MessageStatusEnum.SENDING.getStatus());
         update(chatMessage, updateWrapper);
@@ -158,6 +159,7 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
         messageSendDTO.setMessageType(MessageTypeEnum.FILE_UPLOAD.getType());
         messageSendDTO.setContactId(chatMessage.getContactId());
         messageSendDTO.setMessageContent(fileUrl);
+        messageSendDTO.setVideoCoverUrl(videoCoverUrl);
         messageHandler.sendMessage(messageSendDTO);
     }
 

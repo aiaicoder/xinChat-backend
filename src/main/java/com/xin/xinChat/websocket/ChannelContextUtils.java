@@ -199,7 +199,7 @@ public class ChannelContextUtils {
         }
         Channel userChanel = USER_CHANNEL_CACHE.getIfPresent(receiveUserId);
         if (userChanel == null) {
-            log.error("channel is null，检查用户ID");
+            log.error("channel is null，用户离线");
             return;
         }
         //相对于客户端而已，自己既是发送人也是接收人,可以理解为是系统给他发的消息
