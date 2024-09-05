@@ -128,6 +128,7 @@ public class GroupInfoController {
             User user = userService.getById(userContact.getUserId());
             userContact.setContactName(user.getUserName());
             userContact.setSex(user.getSex());
+            userContact.setAvatar(user.getUserAvatar());
         });
         GroupInfoVo groupInfoVo = new GroupInfoVo();
         //组装，返回前端

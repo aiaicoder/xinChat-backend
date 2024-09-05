@@ -21,6 +21,6 @@ public class GroupInfoVo {
     /**
      * 群成员
      */
-    private List<UserContact> userContactList;
+        private List<UserContact> userContactList;
 
 }
