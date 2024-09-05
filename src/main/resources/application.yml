@@ -68,10 +68,10 @@ mybatis-plus:
 # todo 需替换配置
 cos:
   client:
-    accessKey: AKIDJYgcQ3TfxRlu150veBVcUIvGSYeZHNcz
-    secretKey: ymhiYTJH8sRt9Y5Vl5SycUGuY1NXTBgx
-    region: ap-beijing
-    bucket: xinbo-1314980040
+    accessKey: xxxxx
+    secretKey: xxxxx
+    region: xxxxx
+    bucket: xxxxx
 # 接口文档配置
 knife4j:
   enable: true
