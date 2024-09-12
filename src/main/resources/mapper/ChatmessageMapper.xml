@@ -26,7 +26,7 @@
     <sql id="Base_Column_List">
         messageId
         ,sessionId,messageType,
-        messageContent,sendUserId,sendUserName,
+        messageContent,sendUserId,sendUserName,sendUserAvatar,
         sendTime,contactId,contactType,
         fileSize,fileName,fileType,filePath,videoCoverUrl,recallId
         status

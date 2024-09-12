@@ -87,6 +87,11 @@ public class ChatMessage implements Serializable {
     private String videoCoverUrl;
 
     /**
+     * 发送人头像
+     */
+    private String sendUserAvatar;
+
+    /**
      * 撤回消息用户Id
      */
     private String recallId;

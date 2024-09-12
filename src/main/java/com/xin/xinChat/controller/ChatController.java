@@ -104,6 +104,7 @@ public class ChatController {
         chatMessage.setFileSize(fileSize);
         chatMessage.setFileType(fileType);
         chatMessage.setMessageType(messageType);
+        chatMessage.setSendUserAvatar(loginUser.getUserAvatar());
         MessageSendDTO messageSendDTO = chatMessageService.saveMessage(loginUser,chatMessage);
         return ResultUtils.success(messageSendDTO);
     }

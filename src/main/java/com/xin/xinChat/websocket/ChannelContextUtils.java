@@ -11,6 +11,7 @@ import com.xin.xinChat.model.dto.Message.MessageSendDTO;
 import com.xin.xinChat.model.entity.*;
 import com.xin.xinChat.model.enums.MessageStatusEnum;
 import com.xin.xinChat.model.enums.MessageTypeEnum;
+import com.xin.xinChat.model.enums.UserContactApplyStatusEnum;
 import com.xin.xinChat.model.enums.UserContactEnum;
 import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.ChatMessageService;
@@ -69,8 +70,7 @@ public class ChannelContextUtils {
     private static final Cache<String, Channel> USER_CHANNEL_CACHE = Caffeine.newBuilder().
             maximumSize(10000).build();
     private static final Cache<String, ChannelGroup> GROUP_CHANNEL_CACHE = Caffeine.newBuilder().
-            maximumSize(10000).
-            expireAfterWrite(Duration.ofSeconds(REDIS_HEART_BEAT_TIME)).build();
+            maximumSize(10000).build();
 
     /**
      * 准备好要发送的消息
@@ -137,8 +137,7 @@ public class ChannelContextUtils {
         //获取申请消息
         QueryWrapper<UserContactApply> userContactApplyQueryWrapper = new QueryWrapper<>();
         userContactApplyQueryWrapper.eq("receiveUserId", userId);
-        //只提示3天前的申请
-        userContactApplyQueryWrapper.ge("lastApplyTime",lastOffTime);
+        userContactApplyQueryWrapper.eq("status", UserContactApplyStatusEnum.INIT.getStatus());
         long count = userContactApplyService.count(userContactApplyQueryWrapper);
         wsInitData.setApplyCount(count);
         //发送消息
@@ -260,8 +259,7 @@ public class ChannelContextUtils {
         MessageTypeEnum messageTypeEnum = MessageTypeEnum.getByType(messageSendDTO.getMessageType());
         if (MessageTypeEnum.LEAVE_GROUP == messageTypeEnum || MessageTypeEnum.REMOVE_GROUP == messageTypeEnum){
             Object extendData = messageSendDTO.getExtendData();
-            String userId = BeanUtil.copyProperties(extendData,String.class);
-            Channel channel = USER_CHANNEL_CACHE.getIfPresent(userId);
+            Channel channel = USER_CHANNEL_CACHE.getIfPresent(extendData);
             if (channel == null){
                 return;
             }
@@ -289,7 +287,7 @@ public class ChannelContextUtils {
         }
         if (groupChannel == null) {
             //使用GlobalEventExecutor.INSTANCE意味着这个ChannelGroup的操作将在全局的事件执行器上执行
-            groupChannel = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+            groupChannel =  new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
             GROUP_CHANNEL_CACHE.put(groupId, groupChannel);
         }
         groupChannel.add(channel);

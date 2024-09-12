@@ -332,13 +332,13 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
         if (contactType.equals(UserContactEnum.USER.getType())){
             redisUtils.addUserContact(receiveUserId, applyUserId, appConfig.getTokenTimeout(), TimeUnit.SECONDS);
         }
-        redisUtils.addUserContact(applyUserId, receiveUserId, appConfig.getTokenTimeout(), TimeUnit.SECONDS);
+        redisUtils.addUserContact(applyUserId, contactId, appConfig.getTokenTimeout(), TimeUnit.SECONDS);
         //创建会话 发送消息
         String sessionId = null;
         if (UserContactEnum.USER.getType().equals(contactType)){
             sessionId = StringUtil.getSessionId(new String[]{applyUserId, receiveUserId});
         }else {
-            sessionId = StringUtil.getSessionIdGroup(applyUserId);
+            sessionId = StringUtil.getSessionIdGroup(contactId);
         }
         List<ChatSessionUser> chatSessionUserList = new ArrayList<>();
         if (UserContactEnum.USER.getType().equals(contactType)){

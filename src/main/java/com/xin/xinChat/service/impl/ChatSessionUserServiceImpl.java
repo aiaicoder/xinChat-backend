@@ -37,7 +37,7 @@ public class ChatSessionUserServiceImpl extends ServiceImpl<ChatSessionUserMappe
     private UserContactService userContactService;
 
     @Override
-    public void removeRedundancyInfo(String contactName, String contactId) {
+    public void removeRedundancyInfo(String userId,String contactName, String contactId) {
         UserContactEnum enumByPrefix = UserContactEnum.getEnumByPrefix(contactId);
         if (enumByPrefix == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数错误");
@@ -46,6 +46,7 @@ public class ChatSessionUserServiceImpl extends ServiceImpl<ChatSessionUserMappe
         ChatSessionUser upChatSessionUser = new ChatSessionUser();
         upChatSessionUser.setContactName(contactName);
         upChatSessionUser.setContactId(contactId);
+        upChatSessionUser.setUserId(userId);
         this.updateById(upChatSessionUser);
         if (enumByPrefix == UserContactEnum.GROUP){
             //发送更新消息群消息

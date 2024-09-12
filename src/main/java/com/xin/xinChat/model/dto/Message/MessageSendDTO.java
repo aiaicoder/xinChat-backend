@@ -23,6 +23,8 @@ public class MessageSendDTO<T> implements Serializable {
     private String sendUserId;
     //发送人名称
     private String sendUserName;
+    //发送人头像
+    private String sendUserAvatar;
     //联系人Id
     private String contactId;
     //联系人姓名

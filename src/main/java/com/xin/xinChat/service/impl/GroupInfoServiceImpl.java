@@ -86,6 +86,7 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
             groupInfo.setGroupId(groupIdStr);
             QueryWrapper<GroupInfo> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("groupOwnerId", groupOwnerId);
+            queryWrapper.eq("status",0);
             long count = this.count(queryWrapper);
             SysSettingDTO sysSetting = sysSettingUtil.getSysSetting();
             if (count > sysSetting.getMaxGroupCount()) {
@@ -121,6 +122,7 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
             chatSessionUser.setUserId(groupInfo.getGroupOwnerId());
             chatSessionUser.setContactName(groupInfo.getGroupName());
             chatSessionUser.setContactId(groupInfo.getGroupId());
+            chatSessionUser.setAvatar(groupAvatar);
             chatSessionUserService.save(chatSessionUser);
             //创建消息
             ChatMessage chatMessage = new ChatMessage();
@@ -163,7 +165,7 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
             if (updateContactName == null){
                 return "-1";
             }
-            chatSessionUserService.removeRedundancyInfo(updateContactName,groupId);
+            chatSessionUserService.removeRedundancyInfo(groupOwnerId,updateContactName,groupId);
             if (b){
                 return groupId;
             }
@@ -300,6 +302,9 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
         MessageSendDTO messageSendDTO = BeanUtil.copyProperties(chatMessage, MessageSendDTO.class);
         messageSendDTO.setExtendData(userId);
         messageSendDTO.setMemberCount(count);
+        //
+        //从联系人列表中移除消息
+        redisUtils.delUserContactInfo(userId,groupId);
         messageHandler.sendMessage(messageSendDTO);
     }
 
