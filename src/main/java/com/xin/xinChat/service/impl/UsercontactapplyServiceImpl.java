@@ -223,6 +223,7 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean dealWithApply(Integer applyId, Integer status) {
+
         User loginUser = userService.getLoginUser();
         if (applyId == null || status == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
@@ -245,6 +246,7 @@ public class UsercontactapplyServiceImpl extends ServiceImpl<UserContactApplyMap
         updateContactApply.setLastApplyTime(System.currentTimeMillis());
         UpdateWrapper<UserContactApply> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("status", UserContactApplyStatusEnum.INIT.getStatus());
+        updateWrapper.eq("applyId", applyId);
         boolean update = this.update(updateContactApply, updateWrapper);
         if (!update) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "处理失败");

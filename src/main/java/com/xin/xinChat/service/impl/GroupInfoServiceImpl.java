@@ -165,7 +165,7 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
             if (updateContactName == null){
                 return "-1";
             }
-            chatSessionUserService.removeRedundancyInfo(groupOwnerId,updateContactName,groupId);
+            chatSessionUserService.removeRedundancyInfo(updateContactName,groupId);
             if (b){
                 return groupId;
             }

@@ -11,6 +11,6 @@ import com.xin.xinChat.model.entity.ChatSessionUser;
 */
 public interface ChatSessionUserService extends IService<ChatSessionUser> {
 
-    void removeRedundancyInfo(String userId,String contactName, String contactId);
+    void removeRedundancyInfo(String contactName, String contactId);
 
 }

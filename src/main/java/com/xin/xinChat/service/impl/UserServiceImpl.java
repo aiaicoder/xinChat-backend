@@ -380,7 +380,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //更新保存的用户登录态
         StpUtil.getSession().set(UserConstant.USER_LOGIN_STATE,loginUser);
         //更新会话信息中的昵称信息
-        chatSessionUserService.removeRedundancyInfo(loginUser.getId(),contactName, userId);
+        chatSessionUserService.removeRedundancyInfo(contactName, userId);
         //更新redis中的用户信息
         redisUtils.setUserInfo(userId, JSONUtil.toJsonStr(loginUser), appConfig.getTokenTimeout(), TimeUnit.SECONDS);
         return b;

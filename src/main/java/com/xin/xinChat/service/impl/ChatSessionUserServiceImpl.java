@@ -1,6 +1,7 @@
 package com.xin.xinChat.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.exception.BusinessException;
@@ -37,17 +38,16 @@ public class ChatSessionUserServiceImpl extends ServiceImpl<ChatSessionUserMappe
     private UserContactService userContactService;
 
     @Override
-    public void removeRedundancyInfo(String userId,String contactName, String contactId) {
+    public void removeRedundancyInfo(String contactName, String contactId) {
         UserContactEnum enumByPrefix = UserContactEnum.getEnumByPrefix(contactId);
         if (enumByPrefix == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数错误");
         }
         //更新会话表
-        ChatSessionUser upChatSessionUser = new ChatSessionUser();
-        upChatSessionUser.setContactName(contactName);
-        upChatSessionUser.setContactId(contactId);
-        upChatSessionUser.setUserId(userId);
-        this.updateById(upChatSessionUser);
+        UpdateWrapper<ChatSessionUser> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("contactId",contactId);
+        updateWrapper.set("contactName",contactName);
+        this.update(updateWrapper);
         if (enumByPrefix == UserContactEnum.GROUP){
             //发送更新消息群消息
             MessageSendDTO messageSendDTO = new MessageSendDTO();
