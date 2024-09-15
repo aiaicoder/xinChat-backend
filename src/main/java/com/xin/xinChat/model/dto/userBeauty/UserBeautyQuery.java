@@ -12,5 +12,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class UserBeautyQuery extends PageRequest {
-
+    String email;
+    String id;
 }

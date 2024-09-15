@@ -67,9 +67,7 @@ public class ChatSessionUser implements Serializable {
 
     public Integer getContactType() {
         return Objects.requireNonNull(UserContactEnum.getEnumByPrefix(contactId)).getType();
-
     }
-
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

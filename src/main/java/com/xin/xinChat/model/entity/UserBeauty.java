@@ -25,7 +25,7 @@ public class UserBeauty implements Serializable {
     /**
      * 用户id
      */
-    private String userid;
+    private String userId;
 
     /**
      * 0：未使用 1：已使用

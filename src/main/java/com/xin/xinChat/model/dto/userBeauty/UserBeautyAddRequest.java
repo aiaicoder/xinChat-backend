@@ -11,12 +11,10 @@ import lombok.Data;
 public class UserBeautyAddRequest {
 
     private Integer id;
-
-
     /**
      * 用户id
      */
-    private String userid;
+    private String userId;
 
     /**
      * 0：未使用 1：已使用

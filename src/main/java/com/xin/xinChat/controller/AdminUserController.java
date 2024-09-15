@@ -9,7 +9,6 @@ import com.xin.xinChat.common.ResultUtils;
 import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.exception.ThrowUtils;
-import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.dto.user.AdminUserUpdateRequest;
 import com.xin.xinChat.model.dto.user.UserAddRequest;
 import com.xin.xinChat.model.dto.user.UserQueryRequest;
@@ -17,13 +16,13 @@ import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.enums.UserStatusEnum;
 import com.xin.xinChat.model.vo.UserVO;
 import com.xin.xinChat.service.UserService;
-import com.xin.xinChat.utils.SysSettingUtil;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 import static com.xin.xinChat.constant.UserConstant.SALT;
 
@@ -38,9 +37,6 @@ public class AdminUserController {
 
     @Resource
     private UserService userService;
-
-    @Resource
-    private SysSettingUtil sysSettingUtil;
 
 
     /**
@@ -83,6 +79,8 @@ public class AdminUserController {
         long size = userQueryRequest.getPageSize();
         Page<User> userPage = userService.page(new Page<>(current, size),
                 userService.getQueryWrapper(userQueryRequest));
+        List<User> records = userPage.getRecords();
+        records.forEach(User::setOnlineType);
         return ResultUtils.success(userPage);
     }
 
@@ -138,7 +136,8 @@ public class AdminUserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User user = new User();
-        BeanUtils.copyProperties(userUpdateRequest, user);
+        user.setUserStatus(status);
+        user.setId(userUpdateRequest.getId());
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);

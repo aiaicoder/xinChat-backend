@@ -58,7 +58,7 @@ public class UserBeautyServiceImpl extends ServiceImpl<UserBeautyMapper, UserBea
 
         //判断靓号是否存在
         queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("userId", userBeauty.getUserid());
+        queryWrapper.eq("userId", userBeauty.getUserId());
         dbInfo = getOne(queryWrapper);
         //新增的时候判断靓号是否存在
         if (userBeauty.getId() == null && dbInfo != null) {
@@ -66,26 +66,26 @@ public class UserBeautyServiceImpl extends ServiceImpl<UserBeautyMapper, UserBea
         }
 
         //修改的时候判断靓号是否存在
-        if (userBeauty.getId() != null && dbInfo != null && !userBeauty.getUserid().equals(dbInfo.getUserid())) {
+        if (userBeauty.getId() != null && dbInfo != null && !userBeauty.getUserId().equals(dbInfo.getUserId())) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "靓号已存在");
         }
-
         //判断邮箱是否注册
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
         userQueryWrapper.eq("email", userBeauty.getEmail());
         if (userService.getOne(userQueryWrapper) != null) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "靓号邮箱已被注册");
         }
-        User user = userService.getById(userBeauty.getUserid());
+        User user = userService.getById(userBeauty.getUserId());
         if (user != null) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "靓号已被注册");
         }
 
-        //新增
+
         if (userBeauty.getId() != null) {
+            //修改
             updateById(userBeauty);
         } else {
-            //修改
+
             save(userBeauty);
         }
 

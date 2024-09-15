@@ -74,6 +74,11 @@ public class UserVO implements Serializable {
      */
     private Integer contactStatus;
 
+    /**
+     * 是否展现
+     */
+    private Integer onlineType;
+
 
     private static final long serialVersionUID = 1L;
 }

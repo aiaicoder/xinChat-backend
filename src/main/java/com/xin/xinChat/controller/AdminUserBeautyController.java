@@ -12,6 +12,7 @@ import com.xin.xinChat.model.dto.userBeauty.UserBeautyAddRequest;
 import com.xin.xinChat.model.dto.userBeauty.UserBeautyQuery;
 import com.xin.xinChat.model.entity.UserBeauty;
 import com.xin.xinChat.service.impl.UserBeautyServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,9 +42,13 @@ public class AdminUserBeautyController {
         public BaseResponse<Page<UserBeauty>> loadBeautyList(@RequestBody UserBeautyQuery userBeautyQuery) {
         long current = userBeautyQuery.getCurrent();
         long size = userBeautyQuery.getPageSize();
+        String email = userBeautyQuery.getEmail();
+        String id = userBeautyQuery.getId();
         String sortField = userBeautyQuery.getSortField();
         String sortOrder = userBeautyQuery.getSortOrder();
         QueryWrapper<UserBeauty> queryWrapper = new QueryWrapper<>();
+        queryWrapper.like(id != null, "id", id);
+        queryWrapper.like(StringUtils.isNotBlank(email), "email", email);
         if (sortField != null && sortOrder != null) {
             queryWrapper.orderBy(true, "asc".equals(sortOrder), sortField);
         }

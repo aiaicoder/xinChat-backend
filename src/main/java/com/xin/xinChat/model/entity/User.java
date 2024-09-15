@@ -121,15 +121,14 @@ public class User implements Serializable {
     @TableField(exist = false)
     private Integer onlineType;
 
-    private Integer getOnlineType(){
-        if (lastLoginTime != null && lastLoginTime.getTime() > lastOffTime) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+    public void setOnlineType() {
+        if (lastLoginTime != null && lastLoginTime.getTime() > lastOffTime) {
+            onlineType = 1;
+        } else {
+            onlineType = 0;
+        }
+    }
 }

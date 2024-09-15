@@ -28,14 +28,15 @@
         (SELECT u.userName FROM user u WHERE g.groupOwnerId = u.id) AS ownerName,
         (SELECT count(1) FROM userContact u WHERE g.groupId = u.contactId) AS memberCount
         FROM groupInfo g
-        <if test="groupInfoQueryRequest.groupId != ''">
-            WHERE g.groupId = #{groupInfoQueryRequest.groupId}
+        WHERE 1=1
+        <if test="groupInfoQueryRequest.groupId != null and groupInfoQueryRequest.groupId != ''">
+            AND g.groupId = #{groupInfoQueryRequest.groupId}
         </if>
-        <if test="groupInfoQueryRequest.userId != ''">
-            where g.groupOwnerId = #{groupInfoQueryRequest.userId}
+        <if test="groupInfoQueryRequest.userId != null and groupInfoQueryRequest.userId != ''">
+            AND g.groupOwnerId = #{groupInfoQueryRequest.userId}
         </if>
-        <if test="groupInfoQueryRequest.groupName != ''">
-            where g.groupName LIKE CONCAT('%', #{groupInfoQueryRequest.groupName}, '%')
+        <if test="groupInfoQueryRequest.groupName != null and groupInfoQueryRequest.groupName != ''">
+            AND g.groupName LIKE CONCAT('%', #{groupInfoQueryRequest.groupName}, '%')
         </if>
     </select>
 </mapper>

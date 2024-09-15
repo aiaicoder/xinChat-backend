@@ -38,7 +38,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
-import org.springframework.web.util.HtmlUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -143,7 +142,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             boolean useBeautyAccount = userBeauty != null && userBeauty.getStatus().equals(BeautyAccountStatusEnum.NO_USE.getStatus());
             if (useBeautyAccount) {
                 //如果改邮箱分配了靓号，就将生成的id切换为靓号Id
-                userId = UserContactEnum.USER.getPrefix() + userBeauty.getUserid();
+                userId = UserContactEnum.USER.getPrefix() + userBeauty.getUserId();
             }
             // 2. 加密
             String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
@@ -346,7 +345,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (userQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
         }
-        Long id = userQueryRequest.getId();
+        String id = userQueryRequest.getId();
         String userName = userQueryRequest.getUserName();
         String userProfile = userQueryRequest.getUserProfile();
         String userRole = userQueryRequest.getUserRole();
