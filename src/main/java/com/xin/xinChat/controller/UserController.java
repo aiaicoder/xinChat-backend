@@ -18,6 +18,7 @@ import com.xin.xinChat.model.dto.user.*;
 import com.xin.xinChat.model.entity.User;
 import com.xin.xinChat.model.vo.LoginUserVO;
 import com.xin.xinChat.model.vo.UserVO;
+import com.xin.xinChat.service.GroupInfoService;
 import com.xin.xinChat.service.UserService;
 import com.xin.xinChat.utils.NetUtils;
 import com.xin.xinChat.utils.RedisUtils;
@@ -63,6 +64,8 @@ public class UserController {
 
     @Resource
     private ChannelContextUtils channelContextUtils;
+
+
 
 
     @Resource
@@ -111,6 +114,7 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数缺失");
         }
         String result = userService.userRegister(email, userPassword, checkPassword, checkCode, checkCodeKey);
+
         return ResultUtils.success(result);
     }
 

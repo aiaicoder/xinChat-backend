@@ -14,6 +14,7 @@ import com.xin.xinChat.common.ErrorCode;
 import com.xin.xinChat.config.AppConfig;
 import com.xin.xinChat.constant.CommonConstant;
 import com.xin.xinChat.constant.RedisKeyConstant;
+import com.xin.xinChat.constant.SystemConstants;
 import com.xin.xinChat.constant.UserConstant;
 import com.xin.xinChat.exception.BusinessException;
 import com.xin.xinChat.mapper.UserMapper;
@@ -97,6 +98,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Resource
     MessageHandler messageHandler;
 
+    @Resource
+    @Lazy
+    private GroupInfoService groupInfoService;
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -168,6 +173,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 updataUserBeauty.setId(userBeauty.getId());
                 userBeautyService.updateById(updataUserBeauty);
             }
+            groupInfoService.sysAddGroup(userId, SystemConstants.SYSTEM_GROUP_ID);
             //创建机器人好友
             addRobot(userId);
             return user.getId();
@@ -369,17 +375,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Transactional(rollbackFor = Exception.class)
     public boolean updateUser(User loginUser) {
         String userId = loginUser.getId();
+        String contactName = null;
         //先查询不会锁行，如果先进行更新操作会锁行，这样效率就会慢
         User dbUser = getById(userId);
         boolean b = updateById(loginUser);
-        String contactName = null;
         if (!dbUser.getUserName().equals(loginUser.getUserName())) {
             contactName = loginUser.getUserName();
+            //更新会话信息中的昵称信息
+            chatSessionUserService.removeRedundancyInfo(contactName, userId);
         }
         //更新保存的用户登录态
         StpUtil.getSession().set(UserConstant.USER_LOGIN_STATE,loginUser);
-        //更新会话信息中的昵称信息
-        chatSessionUserService.removeRedundancyInfo(contactName, userId);
         //更新redis中的用户信息
         redisUtils.setUserInfo(userId, JSONUtil.toJsonStr(loginUser), appConfig.getTokenTimeout(), TimeUnit.SECONDS);
         return b;
@@ -430,7 +436,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         ChatSessionUser chatSessionUser = new ChatSessionUser();
         chatSessionUser.setSessionId(sessionId);
         chatSessionUser.setUserId(userId);
-        chatSessionUser.setContactName(contactId);
+        chatSessionUser.setContactName(contactName);
         chatSessionUser.setContactId(contactId);
         chatSessionUserService.save(chatSessionUser);
         //添加聊天消息

@@ -19,4 +19,7 @@ public interface GroupInfoService extends IService<GroupInfo> {
     void addOrRemoveGroupMember(User loginUser, String groupId, String selectContactId, Integer opType);
 
     void leaveGroup(String userId, String groupId, MessageTypeEnum messageTypeEnum);
+
+    //注册自动拉人
+    void sysAddGroup(String userId,String groupId);
 }

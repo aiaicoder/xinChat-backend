@@ -8,6 +8,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.qcloud.cos.model.ciModel.auditing.UserInfo;
 import com.xin.xinChat.mapper.ChatSessionUserMapper;
 import com.xin.xinChat.model.dto.Message.MessageSendDTO;
+import com.xin.xinChat.model.dto.system.SysSettingDTO;
 import com.xin.xinChat.model.entity.*;
 import com.xin.xinChat.model.enums.MessageStatusEnum;
 import com.xin.xinChat.model.enums.MessageTypeEnum;
@@ -19,6 +20,7 @@ import com.xin.xinChat.service.ChatSessionService;
 import com.xin.xinChat.service.UserContactApplyService;
 import com.xin.xinChat.service.UserService;
 import com.xin.xinChat.utils.RedisUtils;
+import com.xin.xinChat.utils.SysSettingUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
@@ -65,6 +67,9 @@ public class ChannelContextUtils {
     @Resource
     private UserContactApplyService userContactApplyService;
 
+    @Resource
+    private SysSettingUtil sysSettingUtil;
+
 
     //channel的本地缓存
     private static final Cache<String, Channel> USER_CHANNEL_CACHE = Caffeine.newBuilder().
@@ -78,6 +83,7 @@ public class ChannelContextUtils {
      * @param channel
      */
     public void addContext(String userId, Channel channel) {
+        SysSettingDTO sysSetting = sysSettingUtil.getSysSetting();
         String channelId = channel.id().toString();
         log.info("userId:{},channelId:{}", userId, channelId);
         AttributeKey attributeKey = null;
@@ -110,6 +116,11 @@ public class ChannelContextUtils {
         Long lastOffTime = sourceLastOffTime;
         //查询所有的会话信息保证换了设备，可以拿到所有的会话消息
         List<ChatSessionUser> chatSessionUserList = chatSessionUserMapper.selectChatSessionContactList(userId);
+        chatSessionUserList.forEach(chatSessionUser -> {
+            if (chatSessionUser.getContactId().equals(sysSetting.getRobotUid())){
+                chatSessionUser.setAvatar(sysSetting.getRobotAvatar());
+            }
+        });
         WsInitData wsInitData = new WsInitData();
         wsInitData.setChatSessionList(chatSessionUserList);
         //获取离线消息,只拿3天前的消息

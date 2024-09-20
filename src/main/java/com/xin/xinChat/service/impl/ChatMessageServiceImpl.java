@@ -136,6 +136,7 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
             User robotUser = new User();
             robotUser.setId(sysSetting.getRobotUid());
             robotUser.setUserName(sysSetting.getRobotNickName());
+            robotUser.setUserAvatar(sysSetting.getRobotAvatar());
 //            //机器人回复的消息
             robotService.handleRobotReply(robotUser,sendUserId,messageContent);
         } else {

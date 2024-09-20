@@ -251,7 +251,6 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
                 userContactApplyService.addContact(contactId,null,groupId,UserContactEnum.GROUP.getType(),null  );
             }
         }
-
     }
 
     @Override
@@ -306,6 +305,11 @@ public class GroupInfoServiceImpl extends ServiceImpl<GroupInfoMapper, GroupInfo
         //从联系人列表中移除消息
         redisUtils.delUserContactInfo(userId,groupId);
         messageHandler.sendMessage(messageSendDTO);
+    }
+
+    @Override
+    public void sysAddGroup(String userId, String groupId) {
+        userContactApplyService.addContact(userId,null,groupId,UserContactEnum.GROUP.getType(),null);
     }
 
 
